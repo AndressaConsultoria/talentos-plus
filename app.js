@@ -359,6 +359,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const loginBtn = document.getElementById("authLoginBtn");
   if (loginBtn) loginBtn.addEventListener("click", login);
 
+  const signupBtn = document.getElementById("authSignupBtn");
+  if (signupBtn) signupBtn.addEventListener("click", signup);
+
   const portalBtn = document.getElementById("pc_enviar");
   if (portalBtn) portalBtn.addEventListener("click", () => App.Controllers.Portal.enviar());
 
@@ -399,6 +402,38 @@ document.addEventListener("DOMContentLoaded", async () => {
   showAuth();
 }
 });
+
+async function signup() {
+  const email = App.Utils.value("authEmail").trim();
+  const password = App.Utils.value("authPassword").trim();
+  const errorBox = document.getElementById("authError");
+
+  if (errorBox) errorBox.innerText = "";
+
+  if (!email || !password) {
+    if (errorBox) errorBox.innerText = "Preencha email e senha para criar a conta.";
+    return;
+  }
+
+  if (!App.State.useSupabase) {
+    if (errorBox) errorBox.innerText = "Supabase não está conectado.";
+    return;
+  }
+
+  const { error } = await supabaseClient.auth.signUp({
+    email,
+    password
+  });
+
+  if (error) {
+    if (errorBox) errorBox.innerText = "Erro ao criar conta: " + error.message;
+    return;
+  }
+
+  if (errorBox) {
+    errorBox.innerText = "Conta criada! Verifique seu e-mail, se o Supabase solicitar confirmação. Depois faça login.";
+  }
+}
 
 async function login() {
   const email = App.Utils.value("authEmail").trim();
