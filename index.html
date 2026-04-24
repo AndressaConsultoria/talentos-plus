@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Talentos+ | Sistema Estratégico de Recrutamento</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <!-- LOGIN ADMIN / CANDIDATO -->
+  <section id="authScreen" class="auth-screen">
+    <div class="auth-card">
+      <div class="auth-brand">
+        <h1>Talentos+</h1>
+        <p>Sistema estratégico de recrutamento inclusivo</p>
+      </div>
+
+      <div class="auth-info">
+        <strong>Acesso seguro</strong>
+        <span>Entre com seu usuário cadastrado no Supabase.</span>
+      </div>
+
+      <label for="authEmail">Email</label>
+      <input id="authEmail" type="email" placeholder="seuemail@exemplo.com" autocomplete="email" />
+
+      <label for="authPassword">Senha</label>
+      <input id="authPassword" type="password" placeholder="Digite sua senha" autocomplete="current-password" />
+
+      <button id="authLoginBtn" class="primary-btn auth-submit" type="button">Entrar</button>
+
+      <div id="authError" class="auth-error" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- SISTEMA PRINCIPAL -->
+  <div id="appShell" class="app-shell hidden">
+    <aside class="sidebar">
+      <div class="brand">
+        <h1>Talentos+</h1>
+        <p>Sistema estratégico de recrutamento</p>
+      </div>
+
+      <nav class="menu" aria-label="Menu principal">
+        <button class="menu-btn active" data-page="mapeia" onclick="showPage('mapeia', this)">MapeIA</button>
+        <button class="menu-btn admin-only" data-page="cadastroVagas" onclick="showPage('cadastroVagas', this)">Cadastro de Vagas</button>
+        <button class="menu-btn admin-only" data-page="gestaoVagas" onclick="showPage('gestaoVagas', this)">Gestão de Vagas</button>
+        <button class="menu-btn admin-only" data-page="cadastroCandidatos" onclick="showPage('cadastroCandidatos', this)">Cadastro de Candidatos</button>
+        <button class="menu-btn admin-only" data-page="gestaoCandidatos" onclick="showPage('gestaoCandidatos', this)">Gestão de Candidatos</button>
+        <button class="menu-btn admin-only" data-page="uploadCandidatos" onclick="showPage('uploadCandidatos', this)">Upload de Candidatos</button>
+        <button class="menu-btn" data-page="portalCandidato" onclick="showPage('portalCandidato', this)">Portal do Candidato</button>
+        <button class="menu-btn admin-only" data-page="parecer" onclick="showPage('parecer', this)">Parecer</button>
+        <button class="menu-btn admin-only" data-page="feedback" onclick="showPage('feedback', this)">Feedback</button>
+        <button class="menu-btn admin-only" data-page="retornoCliente" onclick="showPage('retornoCliente', this)">Retorno ao Cliente</button>
+        <button class="menu-btn admin-only" data-page="diversidade" onclick="showPage('diversidade', this)">Diversidade</button>
+        <button class="menu-btn admin-only" data-page="dashboard" onclick="showPage('dashboard', this)">Dashboard</button>
+      </nav>
+
+      <div id="authUserBadge" class="auth-user-badge"></div>
+      <button class="logout-btn" type="button" onclick="logout()">Sair</button>
+    </aside>
+
+    <main class="content">
+      <!-- MAPEIA -->
+      <section id="mapeia" class="page active">
+        <div class="page-header">
+          <h2>MapeIA</h2>
+          <p>Inteligência de mercado automatizada com histórico de mapeamentos.</p>
+        </div>
+
+        <div class="grid-main">
+          <div class="box">
+            <h3 class="section-title">Novo Mapeamento</h3>
+
+            <div class="grid-2">
+              <div>
+                <label for="m_cliente">Cliente</label>
+                <input id="m_cliente" type="text" placeholder="Ex.: Mercado Livre" />
+              </div>
+
+              <div>
+                <label for="m_vaga">Nome da Vaga</label>
+                <input id="m_vaga" type="text" placeholder="Ex.: Analista Comercial II" />
+              </div>
+
+              <div>
+                <label for="m_senioridade">Senioridade</label>
+                <select id="m_senioridade">
+                  <option value="">Selecione</option>
+                  <option>Júnior</option>
+                  <option>Pleno</option>
+                  <option>Sênior</option>
+                  <option>Especialista</option>
+                  <option>Coordenação</option>
+                  <option>Gerência</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="m_salario">Salário da Vaga</label>
+                <input id="m_salario" type="number" placeholder="Ex.: 5000" />
+              </div>
+
+              <div>
+                <label for="m_localizacao">Localização</label>
+                <input id="m_localizacao" type="text" placeholder="Ex.: São Paulo - SP" />
+              </div>
+
+              <div>
+                <label for="m_idioma">Idioma</label>
+                <input id="m_idioma" type="text" placeholder="Ex.: Inglês intermediário" />
+              </div>
+
+              <div>
+                <label for="m_requisito">Requisito adicional</label>
+                <input id="m_requisito" type="text" placeholder="Ex.: Excel avançado, SAP, Power BI" />
+              </div>
+
+              <div>
+                <label for="m_pcd">Vaga PcD</label>
+                <select id="m_pcd">
+                  <option value="">Selecione</option>
+                  <option>Sim</option>
+                  <option>Não</option>
+                </select>
+              </div>
+            </div>
+
+            <label for="m_descricao">Descrição da vaga</label>
+            <textarea id="m_descricao" class="textarea-lg" placeholder="Cole aqui a descrição completa da vaga, responsabilidades, requisitos e contexto."></textarea>
+
+            <div class="actions">
+              <button class="primary-btn" type="button" onclick="App.Controllers.MapeIA.gerar()">Gerar análise</button>
+              <button class="secondary-btn" type="button" onclick="App.Controllers.MapeIA.salvar()">Salvar mapeamento</button>
+              <button class="ghost-btn" type="button" onclick="App.Controllers.MapeIA.limpar()">Limpar</button>
+            </div>
+
+            <label for="m_resultado">Resultado do MapeIA</label>
+            <textarea id="m_resultado" class="textarea-xl" placeholder="A análise aparecerá aqui." readonly></textarea>
+          </div>
+
+          <div class="box">
+            <h3 class="section-title">Histórico de Mapeamentos</h3>
+
+            <div class="grid-2 compact-filters">
+              <div>
+                <label for="mh_busca_cliente">Filtrar por cliente</label>
+                <input id="mh_busca_cliente" type="text" placeholder="Cliente" oninput="App.Controllers.MapeIA.renderHistorico()" />
+              </div>
+
+              <div>
+                <label for="mh_busca_vaga">Filtrar por vaga</label>
+                <input id="mh_busca_vaga" type="text" placeholder="Vaga" oninput="App.Controllers.MapeIA.renderHistorico()" />
+              </div>
+            </div>
+
+            <div id="listaMapeamentos" class="cards-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CADASTRO DE VAGAS -->
+      <section id="cadastroVagas" class="page">
+        <div class="page-header">
+          <h2>Cadastro de Vagas</h2>
+          <p>Cadastro estruturado para novas vagas e oportunidades.</p>
+        </div>
+
+        <div class="box form-card">
+          <input type="hidden" id="v_id" />
+
+          <fieldset class="candidate-fieldset">
+            <legend>Informações principais da vaga</legend>
+
+            <div class="grid-2">
+              <div>
+                <label for="v_cliente">Empresa / Cliente</label>
+                <input id="v_cliente" type="text" placeholder="Ex.: AC CAMARGO" />
+              </div>
+
+              <div>
+                <label for="v_nome">Cargo / Vaga</label>
+                <input id="v_nome" type="text" placeholder="Ex.: Recepcionista" />
+              </div>
+
+              <div>
+                <label for="v_data">Data de abertura</label>
+                <input id="v_data" type="date" />
+              </div>
+
+              <div>
+                <label for="v_sla_view">Prazo SLA</label>
+                <div id="v_sla_view" class="info-pill">Prazo SLA: —</div>
+              </div>
+
+              <div>
+                <label for="v_senioridade">Senioridade</label>
+                <select id="v_senioridade">
+                  <option value="">Selecione</option>
+                  <option>Júnior</option>
+                  <option>Pleno</option>
+                  <option>Sênior</option>
+                  <option>Especialista</option>
+                  <option>Coordenação</option>
+                  <option>Gerência</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="v_salario">Salário da vaga</label>
+                <input id="v_salario" type="number" placeholder="Ex.: 3200" />
+              </div>
+
+              <div>
+                <label for="v_localizacao">Localização</label>
+                <input id="v_localizacao" type="text" placeholder="Ex.: São Paulo - SP" />
+              </div>
+
+              <div>
+                <label for="v_modalidade">Modalidade</label>
+                <select id="v_modalidade">
+                  <option value="">Selecione</option>
+                  <option>Presencial</option>
+                  <option>Híbrido</option>
+                  <option>Remoto</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="v_tipo">Tipo de vaga</label>
+                <select id="v_tipo">
+                  <option value="">Selecione</option>
+                  <option>Efetiva</option>
+                  <option>Temporária</option>
+                  <option>Aprendiz</option>
+                  <option>Estágio</option>
+                  <option>Trainee</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="v_classificacao">Classificação</label>
+                <select id="v_classificacao">
+                  <option value="">Selecione</option>
+                  <option>Exclusiva PcD</option>
+                  <option>Afirmativa</option>
+                  <option>Ampla concorrência</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="v_status">Status da vaga</label>
+                <select id="v_status">
+                  <option value="">Selecione</option>
+                  <option>Aberta</option>
+                  <option>Em andamento</option>
+                  <option>Fechada</option>
+                  <option>Cancelada</option>
+                  <option>Reaberta</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="v_gestor">Gestor responsável</label>
+                <input id="v_gestor" type="text" placeholder="Nome do gestor" />
+              </div>
+
+              <div>
+                <label for="v_idioma">Idioma</label>
+                <input id="v_idioma" type="text" placeholder="Ex.: Inglês básico" />
+              </div>
+
+              <div>
+                <label for="v_requisito">Requisito adicional</label>
+                <input id="v_requisito" type="text" placeholder="Ex.: Excel intermediário" />
+              </div>
+            </div>
+
+            <label for="v_descricao">Descrição da vaga</label>
+            <textarea id="v_descricao" placeholder="Descreva as atividades, requisitos, contexto e informações importantes da vaga."></textarea>
+          </fieldset>
+
+          <div class="actions">
+            <button id="btnSalvarVaga" class="primary-btn" type="button" onclick="App.Controllers.Vagas.salvar()">Salvar vaga</button>
+            <button class="ghost-btn" type="button" onclick="App.Controllers.Vagas.limparFormulario()">Limpar</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- GESTÃO DE VAGAS -->
+      <section id="gestaoVagas" class="page">
+        <div class="page-header">
+          <h2>Gestão de Vagas</h2>
+          <p>Acompanhamento operacional e estratégico das vagas.</p>
+        </div>
+
+        <div class="box">
+          <div class="grid-3">
+            <div class="kpi-card">
+              <div class="kpi-title">Vagas ativas</div>
+              <div id="gv_kpi_ativas" class="kpi-value">0</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-title">Vagas fechadas</div>
+              <div id="gv_kpi_fechadas" class="kpi-value">0</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-title">Vagas canceladas</div>
+              <div id="gv_kpi_canceladas" class="kpi-value">0</div>
+            </div>
+          </div>
+
+          <div class="grid-3 filters-row">
+            <div>
+              <label for="gv_filtro_cliente">Filtrar por cliente</label>
+              <select id="gv_filtro_cliente" onchange="App.Controllers.Vagas.renderGestao()"></select>
+            </div>
+
+            <div>
+              <label for="gv_filtro_status">Filtrar por status</label>
+              <select id="gv_filtro_status" onchange="App.Controllers.Vagas.renderGestao()">
+                <option value="">Todos</option>
+                <option>Aberta</option>
+                <option>Em andamento</option>
+                <option>Fechada</option>
+                <option>Cancelada</option>
+                <option>Reaberta</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="gv_filtro_nome">Filtrar por vaga</label>
+              <select id="gv_filtro_nome" onchange="App.Controllers.Vagas.renderGestao()"></select>
+            </div>
+          </div>
+
+          <div id="listaGestaoVagas" class="cards-list"></div>
+        </div>
+      </section>
+
+      <!-- CADASTRO DE CANDIDATOS -->
+      <section id="cadastroCandidatos" class="page">
+        <div class="page-header">
+          <h2>Cadastro de Candidatos</h2>
+          <p>Cadastro interno organizado no mesmo padrão das demais telas do sistema.</p>
+        </div>
+
+        <div class="box form-card candidate-box">
+          <div class="candidate-intro">
+            <strong>Uso interno:</strong> cadastre candidatos manualmente, vincule a vagas, registre dados de diversidade, documentos, etapas e motivos de reprovação ou perda.
+          </div>
+
+          <input type="hidden" id="c_id" />
+
+          <fieldset class="candidate-fieldset">
+            <legend>Informações principais</legend>
+
+            <div class="grid-2">
+              <div>
+                <label for="c_nome">Nome completo</label>
+                <input id="c_nome" type="text" placeholder="Digite o nome completo" />
+              </div>
+
+              <div>
+                <label for="c_data_nascimento">Data de nascimento</label>
+                <input id="c_data_nascimento" type="date" />
+              </div>
+
+              <div>
+                <label for="c_vaga">Vaga vinculada</label>
+                <select id="c_vaga"></select>
+              </div>
+
+              <div>
+                <label for="c_cliente">Empresa / Cliente</label>
+                <input id="c_cliente" type="text" placeholder="Preenchido automaticamente pela vaga ou manualmente" />
+              </div>
+
+              <div>
+                <label for="c_status">Status no funil</label>
+                <select id="c_status">
+                  <option value="">Selecione</option>
+                  <option>Novo</option>
+                  <option>Triagem</option>
+                  <option>Abordado</option>
+                  <option>Interessado</option>
+                  <option>Entrevista agendada</option>
+                  <option>Entrevistado</option>
+                  <option>Enviado ao cliente</option>
+                  <option>Entrevista com cliente</option>
+                  <option>Aprovado</option>
+                  <option>Contratado</option>
+                  <option>Reprovado</option>
+                  <option>Declinou</option>
+                  <option>Banco de talentos</option>
+                  <option>Em validação de laudo</option>
+                  <option>Reprovado em laudo</option>
+                  <option>Stand-by</option>
+                  <option>Shortlist enviada</option>
+                  <option>Sem retorno</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="c_etapa">Etapa atual</label>
+                <select id="c_etapa">
+                  <option value="">Selecione</option>
+                  <option>Novo</option>
+                  <option>Triagem</option>
+                  <option>Abordagem</option>
+                  <option>Entrevista</option>
+                  <option>Validação de laudo</option>
+                  <option>Cliente</option>
+                  <option>Aprovação</option>
+                  <option>Reprovação</option>
+                  <option>Banco de talentos</option>
+                  <option>Contratação</option>
+                </select>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="candidate-fieldset">
+            <legend>Contato e localização</legend>
+
+            <div class="grid-2">
+              <div>
+                <label for="c_telefone">Telefone / WhatsApp</label>
+                <input id="c_telefone" type="text" placeholder="(00) 00000-0000" />
+              </div>
+
+              <div>
+                <label for="c_email">Email</label>
+                <input id="c_email" type="email" placeholder="email@exemplo.com" />
+              </div>
+
+              <div>
+                <label for="c_estado">Estado</label>
+                <select id="c_estado">
+                  <option value="">Selecione</option>
+                  <option>AC</option><option>AL</option><option>AP</option><option>AM</option>
+                  <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
+                  <option>GO</option><option>MA</option><option>MT</option><option>MS</option>
+                  <option>MG</option><option>PA</option><option>PB</option><option>PR</option>
+                  <option>PE</option><option>PI</option><option>RJ</option><option>RN</option>
+                  <option>RS</option><option>RO</option><option>RR</option><option>SC</option>
+                  <option>SP</option><option>SE</option><option>TO</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="c_cidade">Cidade</label>
+                <input id="c_cidade" type="text" placeholder="Digite a cidade" />
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="candidate-fieldset">
+            <legend>Dados de diversidade e formação</legend>
+
+            <div class="grid-2">
+              <div>
+                <label for="c_deficiencia">Tipo de deficiência</label>
+                <select id="c_deficiencia">
+                  <option value="">Selecione</option>
+                  <option>Física</option>
+                  <option>Auditiva</option>
+                  <option>Visual</option>
+                  <option>Intelectual</option>
+                  <option>TEA</option>
+                  <option>Múltipla</option>
+                  <option>Outra</option>
+                  <option>Não informado</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="c_cid">CID</label>
+                <input id="c_cid" type="text" placeholder="Ex.: H90, F84, M21..." />
+              </div>
+
+              <div>
+                <label for="c_genero">Gênero</label>
+                <select id="c_genero">
+                  <option value="">Selecione</option>
+                  <option>Homem cisgênero</option>
+                  <option>Mulher cisgênero</option>
+                  <option>Pessoa transgênero</option>
+                  <option>Não binário</option>
+                  <option>Prefere não informar</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="c_raca">Raça/cor</label>
+                <select id="c_raca">
+                  <option value="">Selecione</option>
+                  <option>Preta</option>
+                  <option>Parda</option>
+                  <option>Branca</option>
+                  <option>Amarela</option>
+                  <option>Indígena</option>
+                  <option>Prefere não informar</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="c_escolaridade">Escolaridade</label>
+                <select id="c_escolaridade">
+                  <option value="">Selecione</option>
+                  <option>Ensino fundamental incompleto</option>
+                  <option>Ensino fundamental completo</option>
+                  <option>Ensino médio incompleto</option>
+                  <option>Ensino médio completo</option>
+                  <option>Técnico</option>
+                  <option>Superior cursando</option>
+                  <option>Superior completo</option>
+                  <option>Pós-graduação</option>
+                  <option>Mestrado</option>
+                  <option>Doutorado</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="c_formacao">Formação acadêmica</label>
+                <input id="c_formacao" type="text" placeholder="Ex.: Administração, RH, Marketing" />
+              </div>
+
+              <div>
+                <label for="c_area">Área de atuação</label>
+                <input id="c_area" type="text" placeholder="Ex.: Atendimento, RH, Comercial" />
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="candidate-fieldset">
+            <legend>Documentos do candidato</legend>
+
+            <div class="grid-2">
+              <div>
+                <label for="c_curriculo">Upload de currículo</label>
+                <input id="c_curriculo" type="file" accept=".pdf,.doc,.docx" />
+              </div>
+
+              <div>
+                <label for="c_laudo">Upload de laudo</label>
+                <input id="c_laudo" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" />
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="candidate-fieldset">
+            <legend>Reprovação e análise do processo</legend>
+
+            <div class="grid-2">
+              <div>
+                <label for="c_reprovacao_interna">Reprovação interna</label>
+                <select id="c_reprovacao_interna">
+                  <option value="">Selecione</option>
+                  <option>Sim</option>
+                  <option>Não</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="c_reprovacao_cliente">Reprovação cliente</label>
+                <select id="c_reprovacao_cliente">
+                  <option value="">Selecione</option>
+                  <option>Sim</option>
+                  <option>Não</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="c_tipo_reprovacao">Tipo de reprovação / retorno</label>
+                <select id="c_tipo_reprovacao">
+                  <option value="">Selecione</option>
+                  <option>Reprovação interna</option>
+                  <option>Reprovação pelo cliente</option>
+                  <option>Falta de aderência técnica</option>
+                  <option>Falta de aderência comportamental</option>
+                  <option>Distância/localização</option>
+                  <option>Pretensão salarial incompatível</option>
+                  <option>Indisponibilidade de horário</option>
+                  <option>Laudo pendente/não aderente</option>
+                  <option>Cliente avançou com outro candidato da SL</option>
+                  <option>Vaga congelada/cancelada</option>
+                  <option>Banco de talentos</option>
+                  <option>Aprovado</option>
+                  <option>Em andamento</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="c_motivo_reprovacao">Motivo da reprovação</label>
+                <select id="c_motivo_reprovacao">
+                  <option value="">Selecione</option>
+                  <option>Perfil técnico abaixo do esperado</option>
+                  <option>Experiência insuficiente para a vaga</option>
+                  <option>Pretensão salarial incompatível</option>
+                  <option>Localização/distância</option>
+                  <option>Indisponibilidade de horário</option>
+                  <option>Não compareceu à entrevista</option>
+                  <option>Desistiu do processo</option>
+                  <option>Falta de retorno</option>
+                  <option>Laudo não aderente/pendente de validação</option>
+                  <option>Reprovado em teste técnico</option>
+                  <option>Reprovado por comunicação/postura</option>
+                  <option>Cliente avançou com outro candidato da SL</option>
+                  <option>Vaga congelada/cancelada</option>
+                  <option>Contratação interna</option>
+                  <option>Outros</option>
+                </select>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="candidate-fieldset">
+            <legend>Experiência e competências</legend>
+
+            <label for="c_experiencia">Principais experiências</label>
+            <textarea id="c_experiencia" placeholder="Resumo das principais experiências profissionais."></textarea>
+
+            <label for="c_descricao_experiencia">Descrição da experiência profissional</label>
+            <textarea id="c_descricao_experiencia" placeholder="Descreva atividades, responsabilidades, empresas, resultados ou vivências relevantes."></textarea>
+
+            <label for="c_competencias_tecnicas">Competências técnicas</label>
+            <textarea id="c_competencias_tecnicas" placeholder="Ex.: Excel, sistemas, atendimento, indicadores, Power BI, SAP..."></textarea>
+
+            <label for="c_competencias_comportamentais">Competências comportamentais</label>
+            <textarea id="c_competencias_comportamentais" placeholder="Ex.: comunicação, organização, postura, relacionamento interpessoal..."></textarea>
+
+            <label for="c_contexto">Momento profissional</label>
+            <textarea id="c_contexto" placeholder="Conte o momento profissional atual da pessoa candidata."></textarea>
+
+            <label for="c_objetivo">Objetivo profissional</label>
+            <textarea id="c_objetivo" placeholder="Informe objetivos, áreas de interesse e direcionamento de carreira."></textarea>
+
+            <label for="c_deficiencia_acessibilidade">Necessidade de acessibilidade</label>
+            <textarea id="c_deficiencia_acessibilidade" placeholder="Informe necessidades de acessibilidade, se houver."></textarea>
+
+            <label for="c_recursos_adaptacoes">Recursos ou adaptações necessárias</label>
+            <textarea id="c_recursos_adaptacoes" placeholder="Ex.: intérprete de Libras, leitor de tela, tempo adicional, local silencioso, apoio visual..."></textarea>
+          </fieldset>
+
+          <div class="actions">
+            <button class="primary-btn" type="button" onclick="App.Controllers.Candidatos.salvar()">Salvar candidato</button>
+            <button class="ghost-btn" type="button" onclick="App.Controllers.Candidatos.limparFormulario()">Limpar</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- GESTÃO DE CANDIDATOS -->
+      <section id="gestaoCandidatos" class="page">
+        <div class="page-header">
+          <h2>Gestão de Candidatos</h2>
+          <p>Gestão completa com filtros e leitura estratégica.</p>
+        </div>
+
+        <div class="box">
+          <div class="grid-4 filters-row">
+            <div>
+              <label for="gc_cliente">Filtrar por cliente</label>
+              <select id="gc_cliente" onchange="App.Controllers.Candidatos.renderGestao()"></select>
+            </div>
+
+            <div>
+              <label for="gc_vaga">Filtrar por vaga</label>
+              <select id="gc_vaga" onchange="App.Controllers.Candidatos.renderGestao()"></select>
+            </div>
+
+            <div>
+              <label for="gc_status">Filtrar por status</label>
+              <select id="gc_status" onchange="App.Controllers.Candidatos.renderGestao()">
+                <option value="">Todos</option>
+                <option>Novo</option>
+                <option>Triagem</option>
+                <option>Abordado</option>
+                <option>Interessado</option>
+                <option>Entrevista agendada</option>
+                <option>Entrevistado</option>
+                <option>Enviado ao cliente</option>
+                <option>Entrevista com cliente</option>
+                <option>Aprovado</option>
+                <option>Contratado</option>
+                <option>Reprovado</option>
+                <option>Declinou</option>
+                <option>Banco de talentos</option>
+                <option>Em validação de laudo</option>
+                <option>Reprovado em laudo</option>
+                <option>Stand-by</option>
+                <option>Shortlist enviada</option>
+                <option>Sem retorno</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="gc_busca">Buscar por nome</label>
+              <input id="gc_busca" type="text" placeholder="Digite o nome" oninput="App.Controllers.Candidatos.renderGestao()" />
+            </div>
+          </div>
+
+          <div id="listaGestaoCandidatos" class="cards-list"></div>
+        </div>
+      </section>
+
+      <!-- UPLOAD DE CANDIDATOS -->
+      <section id="uploadCandidatos" class="page">
+        <div class="page-header">
+          <h2>Upload de Candidatos</h2>
+          <p>Importação em lote via CSV.</p>
+        </div>
+
+        <div class="box">
+          <div class="actions">
+            <button class="primary-btn" type="button" onclick="App.Controllers.Upload.baixarModeloCSV()">Baixar modelo CSV</button>
+          </div>
+
+          <label for="csvFile">Selecionar arquivo CSV</label>
+          <input id="csvFile" type="file" accept=".csv" />
+
+          <div class="actions">
+            <button class="primary-btn" type="button" onclick="App.Controllers.Upload.importarCSV()">Importar candidatos</button>
+          </div>
+
+          <div id="uploadResumo" class="resultado-box">Nenhuma importação realizada ainda.</div>
+        </div>
+      </section>
+
+      <!-- PORTAL DO CANDIDATO -->
+      <section id="portalCandidato" class="page portal-page portal-accessible">
+        <div class="page-header portal-header-accessible">
+          <h2>Portal do candidato</h2>
+          <p>Cadastro acessível com foco em inclusão, leitura facilitada e envio de documentos.</p>
+        </div>
+
+        <div class="box portal-box-accessible">
+          <div class="portal-top-alert">
+            <h3>Antes de começar</h3>
+            <ul>
+              <li>Preencha os campos principais para que possamos avaliar seu perfil.</li>
+              <li>Você pode se candidatar a uma vaga disponível ou selecionar Banco de Talentos.</li>
+              <li>O currículo é importante para análise da sua trajetória profissional.</li>
+              <li>O laudo pode ser enviado quando fizer sentido para a vaga e para o processo de inclusão.</li>
+            </ul>
+          </div>
+
+          <form aria-label="Formulário do Portal do Candidato">
+            <fieldset>
+              <legend>Vagas disponíveis</legend>
+              <p class="muted">Escolha uma vaga disponível abaixo ou selecione Banco de Talentos.</p>
+              <div id="pc_vagas_disponiveis" class="cards-list"></div>
+            </fieldset>
+
+            <fieldset>
+              <legend>Dados principais</legend>
+
+              <label for="pc_nome">Nome completo</label>
+              <input id="pc_nome" type="text" placeholder="Digite seu nome completo" autocomplete="name" />
+
+              <label for="pc_telefone">Telefone / WhatsApp</label>
+              <input id="pc_telefone" type="text" placeholder="(00) 00000-0000" autocomplete="tel" />
+
+              <label for="pc_email">E-mail</label>
+              <input id="pc_email" type="email" placeholder="email@exemplo.com" autocomplete="email" />
+
+              <label for="pc_data_nascimento">Data de nascimento</label>
+              <input id="pc_data_nascimento" type="date" />
+
+              <label for="pc_vaga">Vaga de interesse</label>
+              <select id="pc_vaga"></select>
+
+              <label for="pc_empresa">Empresa</label>
+              <input id="pc_empresa" type="text" placeholder="Preenchido automaticamente quando aplicável" />
+            </fieldset>
+
+            <fieldset>
+              <legend>Localização e dados pessoais</legend>
+
+              <label for="pc_estado">Estado</label>
+              <select id="pc_estado">
+                <option value="">Selecione</option>
+                <option>AC</option><option>AL</option><option>AP</option><option>AM</option>
+                <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
+                <option>GO</option><option>MA</option><option>MT</option><option>MS</option>
+                <option>MG</option><option>PA</option><option>PB</option><option>PR</option>
+                <option>PE</option><option>PI</option><option>RJ</option><option>RN</option>
+                <option>RS</option><option>RO</option><option>RR</option><option>SC</option>
+                <option>SP</option><option>SE</option><option>TO</option>
+              </select>
+
+              <label for="pc_cidade">Cidade</label>
+              <input id="pc_cidade" type="text" placeholder="Digite sua cidade" />
+
+              <label for="pc_escolaridade">Escolaridade</label>
+              <select id="pc_escolaridade">
+                <option value="">Selecione</option>
+                <option>Ensino fundamental incompleto</option>
+                <option>Ensino fundamental completo</option>
+                <option>Ensino médio incompleto</option>
+                <option>Ensino médio completo</option>
+                <option>Técnico</option>
+                <option>Superior cursando</option>
+                <option>Superior completo</option>
+                <option>Pós-graduação</option>
+                <option>Mestrado</option>
+                <option>Doutorado</option>
+              </select>
+
+              <label for="pc_genero">Gênero</label>
+              <select id="pc_genero">
+                <option value="">Selecione</option>
+                <option>Homem cisgênero</option>
+                <option>Mulher cisgênero</option>
+                <option>Pessoa transgênero</option>
+                <option>Não binário</option>
+                <option>Prefere não informar</option>
+              </select>
+
+              <label for="pc_raca">Raça/cor</label>
+              <select id="pc_raca">
+                <option value="">Selecione</option>
+                <option>Preta</option>
+                <option>Parda</option>
+                <option>Branca</option>
+                <option>Amarela</option>
+                <option>Indígena</option>
+                <option>Prefere não informar</option>
+              </select>
+            </fieldset>
+
+            <fieldset>
+              <legend>Experiência e competências</legend>
+
+              <label for="pc_experiencia">Principais experiências</label>
+              <textarea id="pc_experiencia" placeholder="Conte resumidamente suas principais experiências profissionais."></textarea>
+
+              <label for="pc_descricao_experiencia">Descrição da experiência profissional</label>
+              <textarea id="pc_descricao_experiencia" placeholder="Descreva atividades, responsabilidades, empresas, resultados ou vivências relevantes."></textarea>
+
+              <label for="pc_competencias_tecnicas">Competências técnicas</label>
+              <textarea id="pc_competencias_tecnicas" placeholder="Ex.: Excel, atendimento, sistemas, relatórios, indicadores..."></textarea>
+
+              <label for="pc_competencias_comportamentais">Competências comportamentais</label>
+              <textarea id="pc_competencias_comportamentais" placeholder="Ex.: comunicação, organização, postura, relacionamento interpessoal..."></textarea>
+
+              <label for="pc_contexto">Momento profissional</label>
+              <textarea id="pc_contexto" placeholder="Conte um pouco sobre seu momento profissional atual."></textarea>
+
+              <label for="pc_objetivo">Objetivo profissional</label>
+              <textarea id="pc_objetivo" placeholder="Informe sua área de interesse, objetivo profissional ou próximos passos desejados."></textarea>
+            </fieldset>
+
+            <fieldset>
+              <legend>Deficiência e acessibilidade</legend>
+
+              <label for="pc_deficiencia">Tipo de deficiência</label>
+              <select id="pc_deficiencia">
+                <option value="">Selecione</option>
+                <option>Física</option>
+                <option>Auditiva</option>
+                <option>Visual</option>
+                <option>Intelectual</option>
+                <option>TEA</option>
+                <option>Múltipla</option>
+                <option>Outra</option>
+                <option>Não informado</option>
+              </select>
+
+              <label for="pc_deficiencia_acessibilidade">Necessidade de acessibilidade</label>
+              <textarea id="pc_deficiencia_acessibilidade" placeholder="Informe se precisa de algum apoio ou adaptação no processo seletivo."></textarea>
+
+              <label for="pc_recursos_adaptacoes">Recursos ou adaptações necessárias</label>
+              <textarea id="pc_recursos_adaptacoes" placeholder="Ex.: intérprete de Libras, leitor de tela, tempo adicional, local silencioso, apoio visual..."></textarea>
+            </fieldset>
+
+            <fieldset>
+              <legend>Upload de documentos</legend>
+
+              <label for="pc_curriculo">Currículo</label>
+              <input id="pc_curriculo" type="file" accept=".pdf,.doc,.docx" />
+
+              <label for="pc_laudo">Laudo</label>
+              <input id="pc_laudo" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" />
+            </fieldset>
+
+            <div class="actions">
+              <button id="pc_enviar" class="primary-btn" type="button">Enviar cadastro</button>
+              <button class="ghost-btn" type="button" onclick="App.Controllers.Portal.limparFormulario()">Limpar</button>
+            </div>
+
+            <div id="pc_resultado" class="resultado-box" aria-live="polite"></div>
+          </form>
+        </div>
+      </section>
+
+      <!-- PARECER -->
+      <section id="parecer" class="page">
+        <div class="page-header">
+          <h2>Parecer</h2>
+          <p>Análise estruturada e consultiva do candidato.</p>
+        </div>
+
+        <div class="box">
+          <div class="grid-2">
+            <div>
+              <label for="p_vaga">Vaga</label>
+              <select id="p_vaga"></select>
+            </div>
+
+            <div>
+              <label for="p_candidato">Candidato</label>
+              <select id="p_candidato"></select>
+            </div>
+          </div>
+
+          <label for="p_transcricao">Observações / Entrevista</label>
+          <textarea id="p_transcricao" placeholder="Cole aqui observações, transcrição ou informações complementares da entrevista."></textarea>
+
+          <div class="actions">
+            <button class="primary-btn" type="button" onclick="App.Controllers.Parecer.gerar()">Gerar parecer</button>
+          </div>
+
+          <label for="p_texto">Parecer gerado</label>
+          <textarea id="p_texto" class="textarea-xl" readonly></textarea>
+        </div>
+      </section>
+
+      <!-- FEEDBACK -->
+      <section id="feedback" class="page">
+        <div class="page-header">
+          <h2>Feedback</h2>
+          <p>Comunicação humanizada e inteligente com candidatos.</p>
+        </div>
+
+        <div class="box">
+          <div class="grid-2">
+            <div>
+              <label for="f_vaga">Vaga</label>
+              <select id="f_vaga"></select>
+            </div>
+
+            <div>
+              <label for="f_candidato">Candidato</label>
+              <select id="f_candidato"></select>
+            </div>
+
+            <div>
+              <label for="f_empresa">Empresa</label>
+              <input id="f_empresa" type="text" readonly />
+            </div>
+
+            <div>
+              <label for="f_etapa">Etapa</label>
+              <select id="f_etapa">
+                <option value="">Selecione</option>
+                <option>Triagem</option>
+                <option>Entrevista</option>
+                <option>Cliente</option>
+                <option>Aprovado</option>
+                <option>Reprovado</option>
+                <option>Banco de talentos</option>
+                <option>Em andamento</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="f_tipo_reprovacao">Tipo de retorno / reprovação</label>
+              <select id="f_tipo_reprovacao">
+                <option value="">Selecione</option>
+                <option>Reprovação interna</option>
+                <option>Reprovação pelo cliente</option>
+                <option>Falta de aderência técnica</option>
+                <option>Falta de aderência comportamental</option>
+                <option>Distância/localização</option>
+                <option>Pretensão salarial incompatível</option>
+                <option>Indisponibilidade de horário</option>
+                <option>Laudo pendente/não aderente</option>
+                <option>Cliente avançou com outro candidato da SL</option>
+                <option>Vaga congelada/cancelada</option>
+                <option>Banco de talentos</option>
+                <option>Aprovado</option>
+                <option>Em andamento</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="f_motivo_reprovacao">Motivo / observação do retorno</label>
+              <select id="f_motivo_reprovacao">
+                <option value="">Selecione</option>
+                <option>Perfil técnico abaixo do esperado</option>
+                <option>Experiência insuficiente para a vaga</option>
+                <option>Pretensão salarial incompatível</option>
+                <option>Localização/distância</option>
+                <option>Indisponibilidade de horário</option>
+                <option>Não compareceu à entrevista</option>
+                <option>Desistiu do processo</option>
+                <option>Falta de retorno</option>
+                <option>Laudo não aderente/pendente de validação</option>
+                <option>Reprovado em teste técnico</option>
+                <option>Reprovado por comunicação/postura</option>
+                <option>Cliente avançou com outro candidato da SL</option>
+                <option>Vaga congelada/cancelada</option>
+                <option>Contratação interna</option>
+                <option>Outros</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="primary-btn" type="button" onclick="App.Controllers.Feedback.gerar()">Gerar feedback</button>
+            <button class="secondary-btn" type="button" onclick="App.Controllers.Feedback.enviarWhatsApp()">Enviar via WhatsApp</button>
+          </div>
+
+          <label for="f_texto">Feedback gerado</label>
+          <textarea id="f_texto" class="textarea-xl" readonly></textarea>
+        </div>
+      </section>
+
+      <!-- RETORNO AO CLIENTE -->
+      <section id="retornoCliente" class="page">
+        <div class="page-header">
+          <h2>Retorno ao Cliente</h2>
+          <p>Visão estratégica do processo seletivo.</p>
+        </div>
+
+        <div class="box">
+          <div class="grid-2">
+            <div>
+              <label for="r_cliente">Cliente</label>
+              <select id="r_cliente"></select>
+            </div>
+
+            <div>
+              <label for="r_vaga">Vaga</label>
+              <select id="r_vaga"></select>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="primary-btn" type="button" onclick="App.Controllers.Retorno.gerar()">Gerar retorno</button>
+          </div>
+
+          <label for="r_texto">Texto estratégico</label>
+          <textarea id="r_texto" class="textarea-xl" readonly></textarea>
+
+          <div id="r_dashboard" class="resultado-box"></div>
+        </div>
+      </section>
+
+      <!-- DIVERSIDADE -->
+      <section id="diversidade" class="page">
+        <div class="page-header">
+          <h2>Diversidade</h2>
+          <p>Visual estratégico da base de candidatos.</p>
+        </div>
+
+        <div class="box">
+          <div class="diversity-grid">
+            <div class="div-card">
+              <div class="div-card-header">Deficiência</div>
+              <div id="chart_deficiencia" class="chart-area"></div>
+            </div>
+
+            <div class="div-card">
+              <div class="div-card-header">Gênero</div>
+              <div id="chart_genero" class="chart-area"></div>
+            </div>
+
+            <div class="div-card">
+              <div class="div-card-header">Raça/cor</div>
+              <div id="chart_raca" class="chart-area"></div>
+            </div>
+
+            <div class="div-card">
+              <div class="div-card-header">Escolaridade</div>
+              <div id="chart_escolaridade" class="chart-area"></div>
+            </div>
+
+            <div class="div-card">
+              <div class="div-card-header">Faixa etária</div>
+              <div id="chart_faixa_etaria" class="chart-area"></div>
+            </div>
+
+            <div class="div-card">
+              <div class="div-card-header">Estado</div>
+              <div id="chart_estado" class="chart-area"></div>
+            </div>
+          </div>
+
+          <div id="d_resultado" class="resultado-box"></div>
+        </div>
+      </section>
+
+      <!-- DASHBOARD -->
+      <section id="dashboard" class="page">
+        <div class="page-header">
+          <h2>Dashboard</h2>
+          <p>Visão geral do sistema.</p>
+        </div>
+
+        <div class="box">
+          <div class="diversity-grid">
+            <div class="div-card">
+              <div class="div-card-header">Candidatos por etapa</div>
+              <div id="chart_etapas" class="chart-area"></div>
+            </div>
+
+            <div class="div-card">
+              <div class="div-card-header">Candidatos por status</div>
+              <div id="chart_status" class="chart-area"></div>
+            </div>
+
+            <div class="div-card">
+              <div class="div-card-header">Funil</div>
+              <div id="chart_funil" class="chart-area"></div>
+            </div>
+
+            <div class="div-card">
+              <div class="div-card-header">Conversão / Aderência</div>
+              <div id="chart_conversao" class="chart-area"></div>
+            </div>
+
+            <div class="div-card">
+              <div class="div-card-header">Reprovação interna</div>
+              <div id="chart_reprovacao_interna" class="chart-area"></div>
+            </div>
+
+            <div class="div-card">
+              <div class="div-card-header">Reprovação cliente</div>
+              <div id="chart_reprovacao_cliente" class="chart-area"></div>
+            </div>
+
+            <div class="div-card">
+              <div class="div-card-header">Motivos de reprovação</div>
+              <div id="chart_motivos_reprovacao" class="chart-area"></div>
+            </div>
+
+            <div class="div-card">
+              <div class="div-card-header">Tempo / contratação</div>
+              <div id="chart_tempo" class="chart-area"></div>
+            </div>
+
+            <div class="div-card">
+              <div class="div-card-header">Origem / desistência</div>
+              <div id="chart_desistencia" class="chart-area"></div>
+            </div>
+          </div>
+
+          <div id="dash_geral_resumo" class="resultado-box"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app.js"></script>
+</body>
+</html>
