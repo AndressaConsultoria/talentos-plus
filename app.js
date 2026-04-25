@@ -1,7 +1,8 @@
 // ============================================================
-// TALENTOS+ | APP.JS COMPLETO CORRIGIDO V2
-// Mantém visual atual. Corrige funcionalidades e dados ausentes.
-// NÃO altera CSS, MapeIA, Parecer ou Retorno ao Cliente.
+// TALENTOS+ | APP.JS COMPLETO COM CONTROLE DE ACESSO
+// Perfil ADMIN: acesso total
+// Perfil CANDIDATO: apenas Vagas em Aberto + Portal do Candidato
+// Mantém módulos existentes, Supabase, uploads, dashboards e fluxos.
 // ============================================================
 
 const SUPABASE_URL = "https://xidodhapgrtkranvzdpx.supabase.co";
@@ -19,6 +20,25 @@ const STORAGE_KEYS = {
 };
 
 const BANCO_TALENTOS_ID = "banco_talentos";
+
+const ACCESS = {
+  admin: [
+    "mapeia",
+    "cadastroVagas",
+    "gestaoVagas",
+    "cadastroCandidatos",
+    "gestaoCandidatos",
+    "uploadCandidatos",
+    "parecer",
+    "feedback",
+    "retornoCliente",
+    "diversidade",
+    "dashboard",
+    "vagasAbertas",
+    "portalCandidato"
+  ],
+  candidato: ["vagasAbertas", "portalCandidato"]
+};
 
 const App = {
   State: {
@@ -210,6 +230,55 @@ const App = {
     }
   },
 
+  Access: {
+    currentRole() {
+      return App.State.profile?.tipo === "admin" ? "admin" : "candidato";
+    },
+
+    canAccess(pageId) {
+      const role = App.Access.currentRole();
+      return ACCESS[role].includes(pageId);
+    },
+
+    firstPageForRole() {
+      const role = App.Access.currentRole();
+      return role === "admin" ? "mapeia" : "vagasAbertas";
+    },
+
+    firstButtonForRole() {
+      const firstPage = App.Access.firstPageForRole();
+      return document.querySelector(`[data-page="${firstPage}"]`);
+    },
+
+    apply() {
+      const role = App.Access.currentRole();
+      const isAdmin = role === "admin";
+
+      document.body.classList.toggle("auth-admin", isAdmin);
+      document.body.classList.toggle("auth-candidato", !isAdmin);
+
+      document.querySelectorAll(".admin-only").forEach(el => {
+        el.style.display = isAdmin ? "block" : "none";
+      });
+
+      document.querySelectorAll(".candidate-only").forEach(el => {
+        el.style.display = isAdmin ? "none" : "block";
+      });
+
+      document.querySelectorAll(".admin-page").forEach(page => {
+        if (!isAdmin) page.classList.remove("active");
+      });
+    },
+
+    guard(pageId) {
+      if (App.Access.canAccess(pageId)) return true;
+      const fallbackPage = App.Access.firstPageForRole();
+      const fallbackBtn = App.Access.firstButtonForRole();
+      showPage(fallbackPage, fallbackBtn);
+      return false;
+    }
+  },
+
   Data: {
     async refreshAll() {
       await Promise.all([
@@ -220,6 +289,7 @@ const App = {
 
       App.Controllers.Vagas.populateSelects();
       App.Controllers.Vagas.renderGestao();
+      App.Controllers.Vagas.renderVagasAbertas();
       App.Controllers.Candidatos.populateSelects();
       App.Controllers.Candidatos.renderGestao();
       App.Controllers.MapeIA.renderHistorico();
@@ -231,6 +301,7 @@ const App = {
       App.Controllers.Diversidade.render();
       App.Controllers.Dashboard.render();
       App.Utils.atualizarSLAVisual();
+      App.Access.apply();
     },
 
     async loadVagas() {
@@ -399,15 +470,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (data.session) await bootUser();
     else showAuth();
   } else {
-  showAuth();
-}
+    showAuth();
+  }
 });
 
 async function signup() {
   const email = App.Utils.value("authEmail").trim();
   const password = App.Utils.value("authPassword").trim();
   const errorBox = document.getElementById("authError");
-
   if (errorBox) errorBox.innerText = "";
 
   if (!email || !password) {
@@ -420,19 +490,23 @@ async function signup() {
     return;
   }
 
-  const { error } = await supabaseClient.auth.signUp({
-    email,
-    password
-  });
+  const { data, error } = await supabaseClient.auth.signUp({ email, password });
 
   if (error) {
     if (errorBox) errorBox.innerText = "Erro ao criar conta: " + error.message;
     return;
   }
 
-  if (errorBox) {
-    errorBox.innerText = "Conta criada! Verifique seu e-mail, se o Supabase solicitar confirmação. Depois faça login.";
+  const userId = data?.user?.id;
+  if (userId) {
+    await supabaseClient.from("profiles").upsert({
+      id: userId,
+      email,
+      tipo: "candidato"
+    });
   }
+
+  if (errorBox) errorBox.innerText = "Conta criada! Agora faça login para acessar o Portal do Candidato.";
 }
 
 async function login() {
@@ -440,19 +514,17 @@ async function login() {
   const password = App.Utils.value("authPassword").trim();
   const errorBox = document.getElementById("authError");
   if (errorBox) errorBox.innerText = "";
+
   if (!email || !password) {
     if (errorBox) errorBox.innerText = "Preencha email e senha.";
     return;
   }
+
   if (!App.State.useSupabase) {
-    App.State.user = { id: "local-admin", email };
-    App.State.profile = { id: "local-admin", email, tipo: "admin" };
-    showApp();
-    applyAccess("admin");
-    await App.Data.refreshAll();
-    showPage("mapeia", document.querySelector('[data-page="mapeia"]'));
+    if (errorBox) errorBox.innerText = "Supabase não está conectado.";
     return;
   }
+
   const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
   if (error) {
     if (errorBox) errorBox.innerText = "Erro no login: " + error.message;
@@ -472,31 +544,47 @@ async function bootUser() {
     showAuth();
     return;
   }
+
   App.State.user = userData.user;
-  let { data: profile, error: profileError } = await supabaseClient.from("profiles").select("*").eq("id", App.State.user.id).maybeSingle();
+
+  let { data: profile, error: profileError } = await supabaseClient
+    .from("profiles")
+    .select("*")
+    .eq("id", App.State.user.id)
+    .maybeSingle();
+
   if (profileError) {
     console.error("Erro ao carregar perfil:", profileError);
     showAuth();
     return;
   }
+
   if (!profile) {
-    const { error: insertProfileError } = await supabaseClient.from("profiles").insert([{ id: App.State.user.id, email: App.State.user.email, tipo: "candidato" }]);
+    const { error: insertProfileError } = await supabaseClient
+      .from("profiles")
+      .insert([{ id: App.State.user.id, email: App.State.user.email, tipo: "candidato" }]);
+
     if (insertProfileError) {
       console.error("Erro ao criar perfil:", insertProfileError);
       showAuth();
       return;
     }
+
     profile = { id: App.State.user.id, email: App.State.user.email, tipo: "candidato" };
   }
+
   App.State.profile = profile;
   showApp();
-  applyAccess(profile.tipo);
+  App.Access.apply();
   await App.Data.refreshAll();
-  if (profile.tipo === "candidato") {
-    showPage("portalCandidato", document.querySelector('[data-page="portalCandidato"]'));
+
+  const startPage = App.Access.firstPageForRole();
+  const startBtn = App.Access.firstButtonForRole();
+  showPage(startPage, startBtn);
+
+  if (App.Access.currentRole() === "candidato") {
     await App.Controllers.Portal.carregarMeuCadastro();
-  } else {
-    showPage("mapeia", document.querySelector('[data-page="mapeia"]'));
+    App.Controllers.Vagas.renderVagasAbertas();
   }
 }
 
@@ -513,19 +601,24 @@ function showApp() {
 }
 
 function applyAccess(tipo) {
-  const isAdmin = tipo === "admin";
-  document.querySelectorAll(".admin-only").forEach(btn => { btn.style.display = isAdmin ? "block" : "none"; });
-  document.body.classList.toggle("auth-candidato", !isAdmin);
+  if (!App.State.profile) App.State.profile = { tipo: tipo || "candidato" };
+  App.State.profile.tipo = tipo || App.State.profile.tipo || "candidato";
+  App.Access.apply();
 }
 
 function showPage(id, btn) {
+  if (!App.Access.guard(id)) return;
+
   document.querySelectorAll(".page").forEach(page => page.classList.remove("active"));
   const selectedPage = document.getElementById(id);
   if (selectedPage) selectedPage.classList.add("active");
+
   document.querySelectorAll(".menu-btn").forEach(button => button.classList.remove("active"));
   if (btn) btn.classList.add("active");
+
   if (id === "gestaoVagas") App.Controllers.Vagas.renderGestao();
   if (id === "gestaoCandidatos") App.Controllers.Candidatos.renderGestao();
+  if (id === "vagasAbertas") App.Controllers.Vagas.renderVagasAbertas();
   if (id === "portalCandidato") App.Controllers.Portal.carregarMeuCadastro();
   if (id === "parecer") App.Controllers.Parecer.populateSelects();
   if (id === "feedback") App.Controllers.Feedback.populateSelects();
@@ -535,7 +628,7 @@ function showPage(id, btn) {
 }
 
 // ============================================================
-// MAPEIA - MANTIDO
+// MAPEIA
 // ============================================================
 
 App.Controllers.MapeIA = {
@@ -606,10 +699,10 @@ App.Controllers.MapeIA = {
   },
 
   renderHistorico() {
-    const cliente = App.Utils.normalizeText(App.Utils.value("mh_busca_cliente"));
-    const vaga = App.Utils.normalizeText(App.Utils.value("mh_busca_vaga"));
     const list = document.getElementById("listaMapeamentos");
     if (!list) return;
+    const cliente = App.Utils.normalizeText(App.Utils.value("mh_busca_cliente"));
+    const vaga = App.Utils.normalizeText(App.Utils.value("mh_busca_vaga"));
     const items = App.State.mapeamentos.filter(m => {
       const c = App.Utils.normalizeText(m.cliente || "");
       const v = App.Utils.normalizeText(m.vaga || m.cargo || "");
@@ -704,6 +797,68 @@ App.Controllers.Vagas = {
     catch (error) { alert("Erro ao excluir vaga: " + error.message); }
   },
 
+  vagasPublicas() {
+    return App.State.vagas.filter(v => {
+      const status = v.status || "Aberta";
+      return ["Aberta", "Em andamento", "Reaberta"].includes(status);
+    });
+  },
+
+  selecionarVagaCandidato(vagaId) {
+    App.Utils.setValue("pc_vaga", vagaId);
+    if (vagaId === BANCO_TALENTOS_ID) {
+      App.Utils.setValue("pc_empresa", "Banco de Talentos");
+    } else {
+      const vaga = App.State.vagas.find(v => v.id === vagaId);
+      App.Utils.setValue("pc_empresa", App.Utils.getVagaCliente(vaga));
+    }
+    showPage("portalCandidato", document.querySelector('[data-page="portalCandidato"]'));
+  },
+
+  renderVagasAbertas() {
+    const list = document.getElementById("listaVagasAbertas");
+    if (!list) return;
+
+    const vagas = this.vagasPublicas();
+
+    let html = `
+      <div class="card-item">
+        <div class="card-title">Banco de Talentos</div>
+        <div class="card-text">
+          Cadastre-se para futuras oportunidades aderentes ao seu perfil.<br>
+          Status: Sempre aberto
+        </div>
+        <div class="card-actions">
+          <button class="action-mini" type="button" onclick="App.Controllers.Vagas.selecionarVagaCandidato('${BANCO_TALENTOS_ID}')">Selecionar Banco de Talentos</button>
+        </div>
+      </div>
+    `;
+
+    if (!vagas.length) {
+      html += `<div class="card-item"><div class="card-text">Nenhuma vaga aberta no momento.</div></div>`;
+      list.innerHTML = html;
+      return;
+    }
+
+    html += vagas.map(vaga => `
+      <div class="card-item">
+        <div class="card-title">${App.Utils.safe(App.Utils.getVagaNome(vaga) || "Vaga sem nome")}</div>
+        <div class="card-text">
+          Empresa: ${App.Utils.safe(App.Utils.getVagaCliente(vaga) || "Não informada")}<br>
+          Localidade: ${App.Utils.safe(vaga.localizacao || "Não informada")}<br>
+          Modalidade: ${App.Utils.safe(vaga.modalidade || "Não informada")}<br>
+          Status: ${App.Utils.safe(vaga.status || "Aberta")}<br>
+          Classificação: ${App.Utils.safe(vaga.classificacao || "Não informada")}
+        </div>
+        <div class="card-actions">
+          <button class="action-mini" type="button" onclick="App.Controllers.Vagas.selecionarVagaCandidato('${vaga.id}')">Candidatar-se</button>
+        </div>
+      </div>
+    `).join("");
+
+    list.innerHTML = html;
+  },
+
   populateSelects() {
     const vagaSelects = ["c_vaga", "gc_vaga", "f_vaga", "p_vaga", "r_vaga", "pc_vaga", "gv_filtro_nome"];
     vagaSelects.forEach(id => {
@@ -713,7 +868,8 @@ App.Controllers.Vagas = {
       const labelInicial = id === "gv_filtro_nome" || id === "gc_vaga" ? "Todas" : "Selecione";
       let options = `<option value="">${labelInicial}</option>`;
       if (["c_vaga", "pc_vaga"].includes(id)) options += App.Utils.option(BANCO_TALENTOS_ID, "Banco de Talentos");
-      options += App.State.vagas.map(vaga => {
+      const vagasForSelect = id === "pc_vaga" ? this.vagasPublicas() : App.State.vagas;
+      options += vagasForSelect.map(vaga => {
         const nome = App.Utils.getVagaNome(vaga) || "Vaga sem nome";
         const cliente = App.Utils.getVagaCliente(vaga);
         const local = vaga.localizacao ? ` | ${vaga.localizacao}` : "";
@@ -724,6 +880,7 @@ App.Controllers.Vagas = {
       el.innerHTML = options;
       el.value = atual;
     });
+
     const clienteSelects = ["gv_filtro_cliente", "gc_cliente", "r_cliente"];
     clienteSelects.forEach(id => {
       const el = document.getElementById(id);
@@ -773,6 +930,30 @@ App.Controllers.Candidatos = {
     return "Baixa";
   },
 
+async abrirDocumento(path) {
+  if (!path) {
+    alert("Documento não encontrado.");
+    return;
+  }
+
+  if (!App.State.useSupabase) {
+    alert("Documento disponível apenas no ambiente conectado ao Supabase.");
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .storage
+    .from("laudos")
+    .createSignedUrl(path, 60 * 10);
+
+  if (error) {
+    alert("Erro ao abrir documento: " + error.message);
+    return;
+  }
+
+  window.open(data.signedUrl, "_blank");
+},
+
   gerarAnaliseIA(nome, vaga, texto) {
     const aderencia = this.gerarAderencia(texto);
     return `O candidato ${nome} apresenta aderência ${aderencia} para a vaga de ${vaga || "vaga não informada"}. A análise considera experiência profissional, competências técnicas, competências comportamentais, contexto profissional e informações de acessibilidade. Recomenda-se validar com o gestor a profundidade técnica, exemplos práticos e alinhamento com o contexto da posição.`;
@@ -804,7 +985,7 @@ App.Controllers.Candidatos = {
       vaga_interesse: isBanco ? "Banco de Talentos" : App.Utils.getVagaNome(vaga),
       cliente: isBanco ? "Banco de Talentos" : (App.Utils.value("c_cliente") || App.Utils.getVagaCliente(vaga)),
       status: App.Utils.value("c_status") || "Triagem",
-      etapa: App.Utils.value("c_status") || "Triagem",
+      etapa: App.Utils.value("c_etapa") || App.Utils.value("c_status") || "Triagem",
       telefone: App.Utils.value("c_telefone"), email: App.Utils.value("c_email"), estado: App.Utils.value("c_estado"), cidade: App.Utils.value("c_cidade"),
       deficiencia: App.Utils.value("c_deficiencia"), cid: App.Utils.value("c_cid"), genero: App.Utils.value("c_genero"), raca: App.Utils.value("c_raca"), escolaridade: App.Utils.value("c_escolaridade"),
       formacao: App.Utils.value("c_formacao"), area: App.Utils.value("c_area"), reprovacao_interna: App.Utils.value("c_reprovacao_interna"), reprovacao_cliente: App.Utils.value("c_reprovacao_cliente"),
@@ -839,7 +1020,7 @@ App.Controllers.Candidatos = {
   },
 
   limparFormulario() {
-    ["c_id", "c_nome", "c_data_nascimento", "c_vaga", "c_cliente", "c_status", "c_telefone", "c_email", "c_estado", "c_cidade", "c_deficiencia", "c_cid", "c_genero", "c_raca", "c_escolaridade", "c_formacao", "c_area", "c_reprovacao_interna", "c_reprovacao_cliente", "c_tipo_reprovacao", "c_motivo_reprovacao", "c_experiencia", "c_descricao_experiencia", "c_competencias_tecnicas", "c_competencias_comportamentais", "c_contexto", "c_objetivo", "c_deficiencia_acessibilidade", "c_recursos_adaptacoes"].forEach(id => App.Utils.setValue(id, ""));
+    ["c_id", "c_nome", "c_data_nascimento", "c_vaga", "c_cliente", "c_status", "c_etapa", "c_telefone", "c_email", "c_estado", "c_cidade", "c_deficiencia", "c_cid", "c_genero", "c_raca", "c_escolaridade", "c_formacao", "c_area", "c_reprovacao_interna", "c_reprovacao_cliente", "c_tipo_reprovacao", "c_motivo_reprovacao", "c_experiencia", "c_descricao_experiencia", "c_competencias_tecnicas", "c_competencias_comportamentais", "c_contexto", "c_objetivo", "c_deficiencia_acessibilidade", "c_recursos_adaptacoes"].forEach(id => App.Utils.setValue(id, ""));
   },
 
   populateSelects() {
@@ -858,7 +1039,7 @@ App.Controllers.Candidatos = {
     if (!c) return;
     App.Utils.setValue("c_id", c.id); App.Utils.setValue("c_nome", c.nome); App.Utils.setValue("c_data_nascimento", c.data_nascimento);
     App.Utils.setValue("c_vaga", c.vaga_id || (c.vaga_interesse === "Banco de Talentos" ? BANCO_TALENTOS_ID : "")); App.Utils.setValue("c_cliente", App.Utils.getCandidatoCliente(c));
-    App.Utils.setValue("c_status", c.status); App.Utils.setValue("c_telefone", c.telefone); App.Utils.setValue("c_email", c.email); App.Utils.setValue("c_estado", c.estado); App.Utils.setValue("c_cidade", c.cidade);
+    App.Utils.setValue("c_status", c.status); App.Utils.setValue("c_etapa", c.etapa); App.Utils.setValue("c_telefone", c.telefone); App.Utils.setValue("c_email", c.email); App.Utils.setValue("c_estado", c.estado); App.Utils.setValue("c_cidade", c.cidade);
     App.Utils.setValue("c_deficiencia", c.deficiencia); App.Utils.setValue("c_cid", c.cid); App.Utils.setValue("c_genero", c.genero); App.Utils.setValue("c_raca", c.raca); App.Utils.setValue("c_escolaridade", c.escolaridade);
     App.Utils.setValue("c_formacao", c.formacao); App.Utils.setValue("c_area", c.area); App.Utils.setValue("c_reprovacao_interna", c.reprovacao_interna); App.Utils.setValue("c_reprovacao_cliente", c.reprovacao_cliente);
     App.Utils.setValue("c_tipo_reprovacao", c.tipo_reprovacao); App.Utils.setValue("c_motivo_reprovacao", c.motivo_reprovacao); App.Utils.setValue("c_experiencia", c.experiencia);
@@ -886,10 +1067,48 @@ App.Controllers.Candidatos = {
     const list = document.getElementById("listaGestaoCandidatos");
     if (!list) return;
     const candidatos = this.filtrarCandidatos();
+
+const cliente = App.Utils.value("gc_cliente");
+const vagaId = App.Utils.value("gc_vaga");
+const status = App.Utils.value("gc_status");
+const busca = App.Utils.value("gc_busca");
+
+if (!cliente && !vagaId && !status && !busca) {
+  list.innerHTML = `
+    <div class="card-item">
+      <div class="card-text">
+        Use os filtros acima para visualizar candidatos.
+      </div>
+    </div>
+  `;
+  return;
+}
     if (!candidatos.length) { list.innerHTML = `<div class="card-item"><div class="card-text">Nenhum candidato encontrado.</div></div>`; return; }
     list.innerHTML = candidatos.map(c => {
       const idade = App.Utils.idade(c.data_nascimento); const faixa = App.Utils.faixaEtaria(c.data_nascimento); const vagaNome = App.Utils.getCandidatoVagaNome(c);
-      return `<div class="card-item"><div class="card-title">${App.Utils.safe(c.nome)}</div><div class="card-text">Vaga: ${App.Utils.safe(vagaNome)}<br>Cliente: ${App.Utils.safe(App.Utils.getCandidatoCliente(c) || "-")}<br>Status: ${App.Utils.safe(c.status || "-")}<br>Idade: ${idade !== null ? idade + " anos" : "Não informado"}<br>Faixa etária: ${App.Utils.safe(faixa)}<br>Escolaridade: ${App.Utils.safe(c.escolaridade || "-")}<br>Gênero: ${App.Utils.safe(c.genero || "-")}<br>Raça/cor: ${App.Utils.safe(c.raca || "-")}<br>Aderência: <strong>${App.Utils.safe(c.aderencia || "-")}</strong><br>Telefone: ${App.Utils.safe(c.telefone || "-")}<br>Email: ${App.Utils.safe(c.email || "-")}<br>Deficiência: ${App.Utils.safe(c.deficiencia || "-")}<br>Reprovação interna: ${App.Utils.safe(c.reprovacao_interna || "-")}<br>Reprovação cliente: ${App.Utils.safe(c.reprovacao_cliente || "-")}<br>Motivo reprovação/perda: ${App.Utils.safe(c.motivo_reprovacao || "-")}<br>Currículo: ${App.Utils.safe(c.curriculo_nome || (c.curriculo_url ? "Enviado" : "Não enviado"))}<br>Laudo: ${App.Utils.safe(c.laudo_nome || (c.laudo_url ? "Enviado" : "Não enviado"))}<br><br><strong>Análise IA:</strong><br>${App.Utils.safe(c.analise_ia || "-")}</div><div class="card-actions"><button class="action-mini" type="button" onclick="App.Controllers.Candidatos.editar('${c.id}')">Editar</button><button class="action-mini" type="button" onclick="App.Controllers.Candidatos.excluir('${c.id}')">Excluir</button></div></div>`;
+      return `
+<div class="card-item"><div class="card-title">${App.Utils.safe(c.nome)}</div><div class="card-text">Vaga: ${App.Utils.safe(vagaNome)}<br>Cliente: ${App.Utils.safe(App.Utils.getCandidatoCliente(c) || "-")}<br>Status: ${App.Utils.safe(c.status || "-")}<br>Etapa: ${App.Utils.safe(c.etapa || "-")}<br>Idade: ${idade !== null ? idade + " anos" : "Não informado"}<br>Faixa etária: ${App.Utils.safe(faixa)}<br>Escolaridade: ${App.Utils.safe(c.escolaridade || "-")}<br>Gênero: ${App.Utils.safe(c.genero || "-")}<br>Raça/cor: ${App.Utils.safe(c.raca || "-")}<br>Aderência: <strong>${App.Utils.safe(c.aderencia || "-")}</strong><br>Telefone: ${App.Utils.safe(c.telefone || "-")}<br>Email: ${App.Utils.safe(c.email || "-")}<br>Deficiência: ${App.Utils.safe(c.deficiencia || "-")}<br>Reprovação interna: ${App.Utils.safe(c.reprovacao_interna || "-")}<br>Reprovação cliente: ${App.Utils.safe(c.reprovacao_cliente || "-")}<br>Motivo reprovação/perda: ${App.Utils.safe(c.motivo_reprovacao || "-")}<br>Currículo: ${App.Utils.safe(c.curriculo_nome || (c.curriculo_url ? "Enviado" : "Não enviado"))}<br>Laudo: ${App.Utils.safe(c.laudo_nome || (c.laudo_url ? "Enviado" : "Não enviado"))}<br><br><strong>Análise IA:</strong><br>${App.Utils.safe(c.analise_ia || "-")}</div><div class="card-actions">
+  <button class="action-mini" type="button" onclick="App.Controllers.Candidatos.editar('${c.id}')">
+    Editar
+  </button>
+
+  ${c.laudo_url ? `
+    <button class="action-mini" type="button" onclick="App.Controllers.Candidatos.abrirDocumento('${c.laudo_url}')">
+      Ver laudo
+    </button>
+  ` : ""}
+
+${c.curriculo_url ? `
+  <button class="action-mini" type="button" onclick="App.Controllers.Candidatos.abrirDocumento('${c.curriculo_url}')">
+    Ver currículo
+  </button>
+` : ""}
+
+  <button class="action-mini" type="button" onclick="App.Controllers.Candidatos.excluir('${c.id}')">
+    Excluir
+  </button>
+</div>
+`;
     }).join("");
   }
 };
@@ -942,9 +1161,9 @@ App.Controllers.Portal = {
   renderVagasDisponiveis() {
     const container = document.getElementById("pc_vagas_disponiveis");
     if (!container) return;
-    const vagas = App.State.vagas.filter(v => !v.status || ["Aberta", "Em andamento", "Reaberta"].includes(v.status));
-    let html = `<div class="card-item"><div class="card-title">Banco de Talentos</div><div class="card-text">Cadastre-se para futuras oportunidades aderentes ao seu perfil.</div><div class="card-actions"><button class="action-mini" type="button" onclick="App.Utils.setValue('pc_vaga','${BANCO_TALENTOS_ID}')">Selecionar</button></div></div>`;
-    html += vagas.map(v => `<div class="card-item"><div class="card-title">${App.Utils.safe(App.Utils.getVagaNome(v))}</div><div class="card-text">Localidade: ${App.Utils.safe(v.localizacao || "Não informada")}<br>Modalidade: ${App.Utils.safe(v.modalidade || "Não informada")}<br>Status: ${App.Utils.safe(v.status || "Não informado")}</div><div class="card-actions"><button class="action-mini" type="button" onclick="App.Utils.setValue('pc_vaga','${v.id}')">Candidatar-se</button></div></div>`).join("");
+    const vagas = App.Controllers.Vagas.vagasPublicas();
+    let html = `<div class="card-item"><div class="card-title">Banco de Talentos</div><div class="card-text">Cadastre-se para futuras oportunidades aderentes ao seu perfil.</div><div class="card-actions"><button class="action-mini" type="button" onclick="App.Controllers.Vagas.selecionarVagaCandidato('${BANCO_TALENTOS_ID}')">Selecionar</button></div></div>`;
+    html += vagas.map(v => `<div class="card-item"><div class="card-title">${App.Utils.safe(App.Utils.getVagaNome(v))}</div><div class="card-text">Localidade: ${App.Utils.safe(v.localizacao || "Não informada")}<br>Modalidade: ${App.Utils.safe(v.modalidade || "Não informada")}<br>Status: ${App.Utils.safe(v.status || "Não informado")}</div><div class="card-actions"><button class="action-mini" type="button" onclick="App.Controllers.Vagas.selecionarVagaCandidato('${v.id}')">Candidatar-se</button></div></div>`).join("");
     container.innerHTML = html;
   },
 
@@ -992,7 +1211,7 @@ App.Controllers.Portal = {
     const textoBase = [experiencia, descricaoExperiencia, competenciasTecnicas, competenciasComportamentais, contexto, objetivo, acessibilidade, recursos].join(" ");
     const dados = {
       user_id: App.State.user.id, nome, email, telefone, data_nascimento: App.Utils.value("pc_data_nascimento") || null, estado: App.Utils.value("pc_estado"), cidade: App.Utils.value("pc_cidade"), escolaridade: App.Utils.value("pc_escolaridade"), genero: App.Utils.value("pc_genero"), raca: App.Utils.value("pc_raca"),
-      vaga_id: isBanco ? null : vagaId, vaga_interesse: isBanco ? "Banco de Talentos" : App.Utils.getVagaNome(vaga), cliente: isBanco ? "Banco de Talentos" : App.Utils.getVagaCliente(vaga), status: "Triagem", etapa: "Triagem", origem: "Portal do candidato", experiencia, descricao_experiencia: descricaoExperiencia, competencias_tecnicas: competenciasTecnicas, competencias_comportamentais: competenciasComportamentais, contexto, momento_profissional: contexto, objetivo_profissional: objetivo, deficiencia: App.Utils.value("pc_deficiencia"), deficiencia_acessibilidade: acessibilidade, necessidade_acessibilidade: acessibilidade, recursos_adaptacoes: recursos, aderencia: App.Controllers.Candidatos.gerarAderencia(textoBase), analise_ia: App.Controllers.Candidatos.gerarAnaliseIA(nome, isBanco ? "Banco de Talentos" : App.Utils.getVagaNome(vaga), textoBase)
+      vaga_id: isBanco ? null : vagaId, vaga_interesse: isBanco ? "Banco de Talentos" : App.Utils.getVagaNome(vaga), cliente: isBanco ? "Banco de Talentos" : App.Utils.getVagaCliente(vaga), status: "Triagem", etapa: "Triagem", origem: isBanco ? "Banco de Talentos" : "Portal do candidato", experiencia, descricao_experiencia: descricaoExperiencia, competencias_tecnicas: competenciasTecnicas, competencias_comportamentais: competenciasComportamentais, contexto, momento_profissional: contexto, objetivo_profissional: objetivo, deficiencia: App.Utils.value("pc_deficiencia"), deficiencia_acessibilidade: acessibilidade, necessidade_acessibilidade: acessibilidade, recursos_adaptacoes: recursos, aderencia: App.Controllers.Candidatos.gerarAderencia(textoBase), analise_ia: App.Controllers.Candidatos.gerarAnaliseIA(nome, isBanco ? "Banco de Talentos" : App.Utils.getVagaNome(vaga), textoBase)
     };
     if (curriculo) { dados.curriculo_url = curriculo.path; dados.curriculo_nome = curriculo.nome; }
     if (laudo) { dados.laudo_url = laudo.path; dados.laudo_nome = laudo.nome; }
@@ -1012,7 +1231,7 @@ App.Controllers.Portal = {
 };
 
 // ============================================================
-// PARECER - MANTIDO
+// PARECER
 // ============================================================
 
 App.Controllers.Parecer = {
@@ -1021,6 +1240,7 @@ App.Controllers.Parecer = {
     if (vagaSelect) { const atual = vagaSelect.value; vagaSelect.innerHTML = `<option value="">Selecione</option>` + App.State.vagas.map(v => App.Utils.option(v.id, App.Utils.getVagaNome(v))).join(""); vagaSelect.value = atual; vagaSelect.onchange = () => { const vagaId = App.Utils.value("p_vaga"); const candidatos = App.State.candidatos.filter(c => !vagaId || c.vaga_id === vagaId); if (candidatoSelect) candidatoSelect.innerHTML = `<option value="">Selecione</option>` + candidatos.map(c => App.Utils.option(c.id, c.nome)).join(""); }; }
     if (candidatoSelect) { const atual = candidatoSelect.value; candidatoSelect.innerHTML = `<option value="">Selecione</option>` + App.State.candidatos.map(c => App.Utils.option(c.id, c.nome)).join(""); candidatoSelect.value = atual; }
   },
+
   async gerar() {
     const c = App.State.candidatos.find(item => item.id === App.Utils.value("p_candidato")); const transcricao = App.Utils.value("p_transcricao"); if (!c) return alert("Selecione um candidato."); const vaga = c.vaga_interesse || App.Utils.getVagaNome(c.vagas) || "vaga não informada";
     const texto = `${c.nome} participa do processo seletivo para a vaga de ${vaga}. ${c.contexto || "A pessoa candidata demonstra interesse na oportunidade e disponibilidade para avaliação."}\n\nEm relação à experiência profissional, apresenta vivência em ${c.area || "área não especificada"}, com histórico envolvendo ${c.experiencia || c.descricao_experiencia || "atividades descritas no processo"}. Observa-se potencial de atuação dentro das demandas da posição, considerando o contexto da vaga.\n\nNo aspecto técnico, destacam-se competências como ${c.competencias_tecnicas || "competências ainda não detalhadas"}. Recomenda-se validação prática junto ao gestor, especialmente para avaliar profundidade técnica e aplicação real.\n\nNo âmbito comportamental, foram identificados pontos relacionados a ${c.competencias_comportamentais || "comunicação, organização e relacionamento interpessoal"}. A avaliação sugere aprofundamento em exemplos práticos para melhor previsibilidade de adaptação ao ambiente.\n\nSobre deficiência e acessibilidade, a análise é conduzida de forma profissional, neutra e sem gerar viés. ${c.deficiencia_acessibilidade || "Até o momento, não foram registradas necessidades específicas de adaptação para a função."}\n\nDe forma geral, o perfil apresenta aderência ${c.aderencia || "a avaliar"} à posição. Recomenda-se seguir com validação junto ao gestor considerando experiência, comunicação e alinhamento com o contexto da oportunidade.\n\nObservações adicionais:\n${transcricao || "Sem informações complementares registradas."}`;
@@ -1031,7 +1251,7 @@ App.Controllers.Parecer = {
 };
 
 // ============================================================
-// FEEDBACK INTELIGENTE + WHATSAPP
+// FEEDBACK
 // ============================================================
 
 App.Controllers.Feedback = {
@@ -1039,20 +1259,21 @@ App.Controllers.Feedback = {
     const vagaSelect = document.getElementById("f_vaga"); const candidatoSelect = document.getElementById("f_candidato");
     if (vagaSelect) { const atual = vagaSelect.value; vagaSelect.innerHTML = `<option value="">Selecione</option>` + App.State.vagas.map(v => App.Utils.option(v.id, App.Utils.getVagaNome(v))).join(""); vagaSelect.value = atual; vagaSelect.onchange = () => this.atualizarCandidatos(); }
     if (candidatoSelect) { const atual = candidatoSelect.value; candidatoSelect.innerHTML = `<option value="">Selecione</option>` + App.State.candidatos.map(c => App.Utils.option(c.id, c.nome)).join(""); candidatoSelect.value = atual; candidatoSelect.onchange = () => this.atualizarEmpresa(); }
-    const tipo = document.getElementById("f_tipo_reprovacao");
-    if (tipo && !tipo.options.length) tipo.innerHTML = `<option value="">Selecione</option><option>Reprovação interna</option><option>Reprovação pelo cliente</option><option>Falta de aderência técnica</option><option>Falta de aderência comportamental</option><option>Distância/localização</option><option>Pretensão salarial incompatível</option><option>Indisponibilidade de horário</option><option>Laudo pendente/não aderente</option><option>Cliente avançou com outro candidato da SL</option><option>Vaga congelada/cancelada</option><option>Banco de talentos</option><option>Aprovado</option><option>Em andamento</option>`;
   },
+
   atualizarCandidatos() {
     const vagaId = App.Utils.value("f_vaga"); const candidatoSelect = document.getElementById("f_candidato"); if (!candidatoSelect) return;
     const candidatos = App.State.candidatos.filter(c => !vagaId || c.vaga_id === vagaId);
     candidatoSelect.innerHTML = `<option value="">Selecione</option>` + candidatos.map(c => App.Utils.option(c.id, c.nome)).join("");
   },
+
   atualizarEmpresa() {
     const candidato = App.State.candidatos.find(item => item.id === App.Utils.value("f_candidato")); if (!candidato) return;
     App.Utils.setValue("f_empresa", App.Utils.getCandidatoCliente(candidato));
     App.Utils.setValue("f_motivo_reprovacao", candidato.motivo_reprovacao || "");
     App.Utils.setValue("f_tipo_reprovacao", candidato.tipo_reprovacao || "");
   },
+
   gerarTexto(candidato, vaga, etapa, tipo, motivo) {
     const nomeVaga = App.Utils.getVagaNome(vaga) || candidato.vaga_interesse || App.Utils.getVagaNome(candidato.vagas) || "a oportunidade";
     const empresa = App.Utils.getCandidatoCliente(candidato);
@@ -1071,6 +1292,7 @@ App.Controllers.Feedback = {
     if (tipo === "Banco de talentos") return `${abertura}Neste momento, a posição seguirá com outro direcionamento, mas seu perfil poderá permanecer em nosso banco de talentos para futuras oportunidades mais aderentes.\n\nAgradecemos sua participação e disponibilidade.${fechamento}`;
     return `${abertura}Neste momento, temos uma atualização sobre sua candidatura. Status atual: ${etapa || "em análise"}. ${contexto ? `Ponto considerado: ${contexto}.` : "Seguimos acompanhando a evolução do processo."}${fechamento}`;
   },
+
   async gerar() {
     const candidato = App.State.candidatos.find(item => item.id === App.Utils.value("f_candidato"));
     const vaga = App.State.vagas.find(item => item.id === App.Utils.value("f_vaga"));
@@ -1084,6 +1306,7 @@ App.Controllers.Feedback = {
     try { await App.Data.update("candidatos", candidato.id, update); await App.Data.refreshAll(); }
     catch (error) { alert("Feedback gerado, mas não foi salvo: " + error.message); }
   },
+
   enviarWhatsApp() {
     const candidato = App.State.candidatos.find(item => item.id === App.Utils.value("f_candidato"));
     const texto = App.Utils.value("f_texto");
@@ -1094,7 +1317,7 @@ App.Controllers.Feedback = {
 };
 
 // ============================================================
-// RETORNO AO CLIENTE - MANTIDO
+// RETORNO AO CLIENTE
 // ============================================================
 
 App.Controllers.Retorno = {
@@ -1107,6 +1330,7 @@ App.Controllers.Retorno = {
     }
     if (vagaSelect) { const atual = vagaSelect.value; vagaSelect.innerHTML = `<option value="">Selecione</option>` + App.State.vagas.map(v => App.Utils.option(v.id, App.Utils.getVagaNome(v))).join(""); vagaSelect.value = atual; }
   },
+
   gerar() {
     const vagaId = App.Utils.value("r_vaga"); const vaga = App.State.vagas.find(item => item.id === vagaId); if (!vaga) return alert("Selecione a vaga.");
     const candidatos = App.State.candidatos.filter(c => c.vaga_id === vagaId); const total = candidatos.length;
@@ -1125,7 +1349,7 @@ App.Controllers.Retorno = {
 };
 
 // ============================================================
-// DIVERSIDADE / DASHBOARD RESTAURADO
+// DIVERSIDADE / DASHBOARD
 // ============================================================
 
 App.Controllers.Diversidade = {
@@ -1162,7 +1386,9 @@ App.Controllers.Dashboard = {
 window.App = App;
 window.showPage = showPage;
 window.login = login;
+window.signup = signup;
 window.logout = logout;
+window.applyAccess = applyAccess;
 
 // ============================================================
 // FIM DO APP.JS
