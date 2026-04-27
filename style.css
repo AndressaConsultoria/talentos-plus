@@ -600,141 +600,99 @@ button,
   font-weight: 800;
 }
 
-/* PORTAL DO CANDIDATO — ACESSÍVEL E PROFISSIONAL */
+/* ============================================================
+   PORTAL DO CANDIDATO | AJUSTE ACESSÍVEL
+============================================================ */
 
-.portal-page {
-  max-width: 1120px;
-}
-
-.portal-header-accessible h2 {
-  font-size: 34px;
-  color: #2f241f;
-  line-height: 1.2;
-}
-
-.portal-header-accessible p {
-  font-size: 18px;
-  color: #3b2f2f;
-  line-height: 1.6;
-}
-
-.portal-box-accessible {
+#portalCandidato fieldset {
+  border: 2px solid #8a9a91;
+  border-radius: 18px;
+  padding: 26px;
+  margin-bottom: 28px;
   background: #ffffff;
-  border: 1px solid #d7c6b8;
-  border-radius: 22px;
-  padding: 30px;
-  box-shadow: 0 10px 28px rgba(59, 47, 47, 0.08);
 }
 
-.portal-top-alert {
-  background: #fff8e6;
-  border: 1px solid #e4c78f;
-  border-radius: 18px;
-  padding: 22px;
-  margin-bottom: 24px;
-}
-
-.portal-top-alert h3 {
-  margin: 0 0 12px 0;
-  font-size: 24px;
-  color: #2f241f;
-}
-
-.portal-top-alert ul {
-  margin: 0;
-  padding-left: 24px;
-}
-
-.portal-top-alert li {
-  font-size: 17px;
-  line-height: 1.7;
-  color: #2f241f;
-  margin-bottom: 6px;
-}
-
-.portal-box-accessible form {
-  display: block;
-}
-
-.portal-box-accessible fieldset {
-  border: 1px solid #d7c6b8;
-  border-radius: 18px;
-  padding: 22px;
-  margin-bottom: 22px;
-  background: #fffdfb;
-}
-
-.portal-box-accessible legend {
-  font-size: 18px;
+#portalCandidato legend {
+  font-size: 1.25rem;
   font-weight: 800;
-  color: #2f241f;
+  color: #1f2d2a;
   padding: 0 10px;
 }
 
-.portal-box-accessible label {
-  font-size: 15px;
-  color: #2f241f;
+#portalCandidato label {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1f2d2a;
+  margin-top: 18px;
+  margin-bottom: 8px;
 }
 
-.portal-box-accessible input,
-.portal-box-accessible select,
-.portal-box-accessible textarea {
-  width: 100%;
-  min-height: 54px;
-  font-size: 17px;
-  padding: 15px 16px;
-  margin-bottom: 14px;
-  border: 2px solid #c8b6a5;
-  border-radius: 14px;
+#portalCandidato input,
+#portalCandidato select,
+#portalCandidato textarea {
+  min-height: 52px;
+  font-size: 1.05rem;
+  border: 2px solid #7f8f87;
+  border-radius: 12px;
+  padding: 14px;
+  color: #111827;
   background: #ffffff;
-  color: #1f1a17;
 }
 
-.portal-box-accessible textarea {
-  min-height: 150px;
+#portalCandidato textarea {
+  min-height: 120px;
 }
 
-.portal-box-accessible input:focus,
-.portal-box-accessible select:focus,
-.portal-box-accessible textarea:focus {
-  border-color: #7a5c4d;
-  box-shadow: 0 0 0 4px rgba(185, 137, 91, 0.22);
+#portalCandidato .competencias-duas-colunas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
 }
 
-.portal-box-accessible button,
-#pc_enviar {
-  min-height: 54px;
-  font-size: 17px;
-  background: #3b2f2f;
-  color: #ffffff;
-  border: none;
-  border-radius: 14px;
-  padding: 14px 22px;
-  cursor: pointer;
+#portalCandidato .competencia-coluna {
+  border: 2px solid #7f8f87;
+  border-radius: 16px;
+  padding: 22px;
+  background: #f8faf9;
+}
+
+#portalCandidato .competencia-coluna h4 {
+  font-size: 1.15rem;
   font-weight: 800;
+  margin-bottom: 16px;
+  color: #1f2d2a;
 }
 
-.portal-box-accessible button:hover,
-#pc_enviar:hover {
-  background: #5c4033;
+#portalCandidato .compact-checkbox-grid {
+  display: grid;
+  gap: 12px;
 }
 
-#pc_resultado {
-  margin-top: 16px;
-  padding: 16px;
-  border-radius: 14px;
-  background: #f8efe5;
-  border: 1px solid #e4d2bf;
-  font-size: 16px;
-  line-height: 1.7;
-  color: #2f241f;
+#portalCandidato .compact-checkbox-grid label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  border: 2px solid #9aa8a1;
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: #ffffff;
+  font-size: 1.05rem;
+  font-weight: 600;
 }
 
-/* CAMPOS ADICIONAIS DO PORTAL */
+#portalCandidato .compact-checkbox-grid input[type="checkbox"],
+#portalCandidato .checkbox-lg input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  min-height: auto;
+  accent-color: #1f4f46;
+}
 
-#pc_data_nascimento,
-#pc_experiencia {
-  display: block;
+@media (max-width: 768px) {
+  #portalCandidato .competencias-duas-colunas {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* PARECER */

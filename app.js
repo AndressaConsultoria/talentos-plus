@@ -2268,16 +2268,20 @@ App.Controllers.Dashboard = {
     }
   }
 };
-window.App = App;
-window.showPage = showPage;
-window.login = login;
-window.logout = logout;
-window.applyAccess = applyAccess;
-window.signup = signup;
 
-// ==============================
-// TESTE BOTÃO CRIAR CONTA
-// ==============================
+// ============================================================
+// FUNÇÕES GLOBAIS OBRIGATÓRIAS
+// ============================================================
+
+function showAuth() {
+  document.getElementById("authScreen")?.classList.remove("hidden");
+  document.getElementById("appShell")?.classList.add("hidden");
+}
+
+function showApp() {
+  document.getElementById("authScreen")?.classList.add("hidden");
+  document.getElementById("appShell")?.classList.remove("hidden");
+}
 
 async function signup() {
   const email = App.Utils.value("authEmail").trim();
@@ -2291,10 +2295,7 @@ async function signup() {
     return;
   }
 
-  const { data, error } = await supabaseClient.auth.signUp({
-    email,
-    password
-  });
+  const { data, error } = await supabaseClient.auth.signUp({ email, password });
 
   if (error) {
     if (errorBox) errorBox.innerText = "Erro ao criar conta: " + error.message;
@@ -2315,10 +2316,6 @@ async function signup() {
     errorBox.innerText = "Conta de candidato criada. Agora clique em Entrar.";
   }
 }
-
-// ============================================================
-// FUNÇÕES GLOBAIS OBRIGATÓRIAS
-// ============================================================
 
 async function login() {
   const email = App.Utils.value("authEmail").trim();
@@ -2345,87 +2342,16 @@ async function login() {
   await bootUser();
 }
 
-function showPage(id, btn) {
-  document.querySelectorAll(".page").forEach(page => {
-    page.classList.remove("active");
-  });
-
-  const page = document.getElementById(id);
-  if (page) page.classList.add("active");
-
-  document.querySelectorAll(".menu-btn").forEach(button => {
-    button.classList.remove("active");
-  });
-
-  if (btn) btn.classList.add("active");
-
-  if (id === "gestaoVagas") App.Controllers.Vagas.renderGestao();
-  if (id === "gestaoCandidatos") App.Controllers.Candidatos.renderGestao();
-  if (id === "portalCandidato") App.Controllers.Portal.carregarMeuCadastro();
-  if (id === "diversidade") App.Controllers.Diversidade.render();
-  if (id === "dashboard") App.Controllers.Dashboard.render();
-}
-
-window.login = login;
-window.showPage = showPage;
-
-// ============================================================
-// BOOT DO USUÁRIO (APÓS LOGIN)
-// ============================================================
-
-async function bootUser() {
-  // pega usuário logado
-  const { data } = await supabaseClient.auth.getUser();
-  const user = data?.user;
-
-  if (!user) {
-    showAuth();
-    return;
+async function logout() {
+  if (supabaseClient) {
+    await supabaseClient.auth.signOut();
   }
 
-  App.State.user = user;
+  App.State.user = null;
+  App.State.profile = null;
 
-  // tenta buscar perfil (admin ou candidato)
-  const { data: profile } = await supabaseClient
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-
-  // define tipo padrão se não existir
-  const tipo = profile?.tipo || "candidato";
-
-  App.State.userProfile = {
-    ...profile,
-    tipo
-  };
-
-  // mostra sistema
-  document.getElementById("authScreen").classList.add("hidden");
-  document.getElementById("appShell").classList.remove("hidden");
-
-  // badge do usuário
-  const badge = document.getElementById("authUserBadge");
-  if (badge) {
-    badge.innerText = `${user.email} (${tipo})`;
-  }
-
-  // controle de acesso
-  applyAccess(tipo);
-
-  // carrega dados iniciais
-  if (App.Controllers.Vagas) await App.Controllers.Vagas.carregar();
-  if (App.Controllers.Candidatos) await App.Controllers.Candidatos.carregar();
-
-  // abre primeira tela
-  showPage("mapeia");
+  location.reload();
 }
-
-window.bootUser = bootUser;
-
-// ==============================
-// CONTROLE DE ACESSO
-// ==============================
 
 function applyAccess(tipo) {
   const isAdmin = tipo === "admin";
@@ -2444,25 +2370,6 @@ function applyAccess(tipo) {
     }
   });
 }
-
-// ==============================
-// LOGOUT
-// ==============================
-
-async function logout() {
-  if (supabaseClient) {
-    await supabaseClient.auth.signOut();
-  }
-
-  document.getElementById("appShell")?.classList.add("hidden");
-  document.getElementById("authScreen")?.classList.remove("hidden");
-
-  location.reload();
-}
-
-// ==============================
-// NAVEGAÇÃO PROTEGIDA
-// ==============================
 
 function showPage(id, btn) {
   const tipo = App.State.profile?.tipo || "candidato";
@@ -2484,16 +2391,23 @@ function showPage(id, btn) {
   });
 
   if (btn) btn.classList.add("active");
+
+  if (id === "gestaoVagas") App.Controllers.Vagas.renderGestao();
+  if (id === "gestaoCandidatos") App.Controllers.Candidatos.renderGestao();
+  if (id === "portalCandidato") App.Controllers.Portal.prepararPortal();
+  if (id === "diversidade") App.Controllers.Diversidade.render();
+  if (id === "dashboard") App.Controllers.Dashboard.render();
 }
 
-// ==============================
-// BOOT DO USUÁRIO
-// ==============================
-
 async function bootUser() {
-  const { data } = await supabaseClient.auth.getUser();
+  const { data, error } = await supabaseClient.auth.getUser();
 
-  if (!data.user) return;
+  if (error || !data.user) {
+    showAuth();
+    return;
+  }
+
+  App.State.user = data.user;
 
   let { data: profile } = await supabaseClient
     .from("profiles")
@@ -2513,8 +2427,7 @@ async function bootUser() {
 
   App.State.profile = profile;
 
-  document.getElementById("authScreen").classList.add("hidden");
-  document.getElementById("appShell").classList.remove("hidden");
+  showApp();
 
   const badge = document.getElementById("authUserBadge");
   if (badge) {
@@ -2523,21 +2436,28 @@ async function bootUser() {
 
   applyAccess(profile.tipo);
 
+  if (App.Data?.refreshAll) {
+    await App.Data.refreshAll();
+  }
+
   if (profile.tipo === "admin") {
-    showPage("mapeia");
+    showPage("mapeia", document.querySelector('[data-page="mapeia"]'));
   } else {
-    showPage("portalCandidato");
+    showPage("portalCandidato", document.querySelector('[data-page="portalCandidato"]'));
   }
 }
 
-// ==============================
-// GLOBAL
-// ==============================
+// ============================================================
+// EXPOSIÇÃO GLOBAL
+// ============================================================
 
-window.logout = logout;
+window.App = App;
 window.showPage = showPage;
-window.bootUser = bootUser;
+window.login = login;
+window.logout = logout;
+window.signup = signup;
 window.applyAccess = applyAccess;
+window.bootUser = bootUser;
 
 // ============================================================
 // FIM DO APP.JS
