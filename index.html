@@ -738,7 +738,7 @@
         </div>
       </section>
 
-     <!-- PORTAL DO CANDIDATO -->
+<!-- PORTAL DO CANDIDATO -->
 <section id="portalCandidato" class="page portal-page portal-accessible">
   <div class="page-header portal-header-accessible">
     <h2>Portal do candidato</h2>
@@ -748,49 +748,98 @@
   <div class="box portal-box-accessible">
     <form aria-label="Formulário do Portal do Candidato">
 
-      <!-- VAGAS -->
       <fieldset>
         <legend>Vaga de interesse</legend>
 
         <label for="pc_vaga">Selecione uma vaga</label>
-        <select id="pc_vaga"></select>
+        <select id="pc_vaga">
+          <option value="">Selecione</option>
+          <option value="banco_talentos">Banco de Talentos</option>
+        </select>
+
+        <p class="muted">
+          As vagas abertas aparecerão com a localidade/estado ao lado do nome.
+          Caso não encontre uma vaga aderente, selecione Banco de Talentos.
+        </p>
 
         <label for="pc_empresa">Empresa</label>
         <input id="pc_empresa" type="text" readonly />
       </fieldset>
 
-      <!-- DADOS PRINCIPAIS -->
       <fieldset>
         <legend>Dados principais</legend>
 
-        <label>Nome completo</label>
+        <label for="pc_nome">Nome completo</label>
         <input id="pc_nome" type="text" />
 
-        <label>CPF</label>
-        <input id="pc_cpf" type="text" />
+        <label for="pc_cpf">CPF</label>
+        <input id="pc_cpf" type="text" placeholder="000.000.000-00" />
 
-        <label>Email</label>
+        <label for="pc_email">Email</label>
         <input id="pc_email" type="email" />
 
-        <label>Telefone</label>
+        <label for="pc_telefone">Telefone</label>
         <input id="pc_telefone" type="text" />
 
-        <label>Data de nascimento</label>
+        <label for="pc_data_nascimento">Data de nascimento</label>
         <input id="pc_data_nascimento" type="date" />
       </fieldset>
 
-      <!-- LOCALIZAÇÃO -->
       <fieldset>
-        <legend>Localização</legend>
+        <legend>Localização e diversidade</legend>
 
-        <label>Estado</label>
-        <select id="pc_estado"></select>
+        <label for="pc_estado">Estado</label>
+        <select id="pc_estado">
+          <option value="">Selecione</option>
+          <option>AC</option><option>AL</option><option>AP</option><option>AM</option>
+          <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
+          <option>GO</option><option>MA</option><option>MT</option><option>MS</option>
+          <option>MG</option><option>PA</option><option>PB</option><option>PR</option>
+          <option>PE</option><option>PI</option><option>RJ</option><option>RN</option>
+          <option>RS</option><option>RO</option><option>RR</option><option>SC</option>
+          <option>SP</option><option>SE</option><option>TO</option>
+        </select>
 
-        <label>Cidade</label>
+        <label for="pc_cidade">Cidade</label>
         <input id="pc_cidade" type="text" />
+
+        <label for="pc_escolaridade">Escolaridade</label>
+        <select id="pc_escolaridade">
+          <option value="">Selecione</option>
+          <option>Ensino fundamental incompleto</option>
+          <option>Ensino fundamental completo</option>
+          <option>Ensino médio incompleto</option>
+          <option>Ensino médio completo</option>
+          <option>Técnico</option>
+          <option>Superior cursando</option>
+          <option>Superior completo</option>
+          <option>Pós-graduação</option>
+          <option>Mestrado</option>
+          <option>Doutorado</option>
+        </select>
+
+        <label for="pc_genero">Gênero</label>
+        <select id="pc_genero">
+          <option value="">Selecione</option>
+          <option>Mulher cisgênero</option>
+          <option>Homem cisgênero</option>
+          <option>Pessoa transgênero</option>
+          <option>Não binário</option>
+          <option>Prefere não informar</option>
+        </select>
+
+        <label for="pc_raca">Raça/cor</label>
+        <select id="pc_raca">
+          <option value="">Selecione</option>
+          <option>Preta</option>
+          <option>Parda</option>
+          <option>Branca</option>
+          <option>Amarela</option>
+          <option>Indígena</option>
+          <option>Prefere não informar</option>
+        </select>
       </fieldset>
 
-      <!-- EXPERIÊNCIAS -->
       <fieldset>
         <legend>Últimas experiências profissionais</legend>
 
@@ -800,87 +849,116 @@
         <textarea id="pc_exp1_atividades" placeholder="Descreva atividades"></textarea>
 
         <h4>Penúltima experiência</h4>
-        <input id="pc_exp2_empresa" />
-        <input id="pc_exp2_periodo" />
-        <textarea id="pc_exp2_atividades"></textarea>
+        <input id="pc_exp2_empresa" placeholder="Empresa" />
+        <input id="pc_exp2_periodo" placeholder="Período" />
+        <textarea id="pc_exp2_atividades" placeholder="Descreva atividades"></textarea>
 
         <h4>Terceira experiência</h4>
-        <input id="pc_exp3_empresa" />
-        <input id="pc_exp3_periodo" />
-        <textarea id="pc_exp3_atividades"></textarea>
+        <input id="pc_exp3_empresa" placeholder="Empresa" />
+        <input id="pc_exp3_periodo" placeholder="Período" />
+        <textarea id="pc_exp3_atividades" placeholder="Descreva atividades"></textarea>
       </fieldset>
 
-      <!-- COMPETÊNCIAS -->
       <fieldset>
         <legend>Competências</legend>
 
-        <p class="muted">Selecione até 6 em cada grupo</p>
+        <p class="muted">
+          Selecione até 6 competências técnicas e até 6 competências comportamentais.
+        </p>
 
-        <label>Competências técnicas</label>
-        <div id="pc_competencias_tecnicas" class="checkbox-grid">
-          <label><input type="checkbox" value="Excel" /> Excel</label>
-          <label><input type="checkbox" value="Power BI" /> Power BI</label>
-          <label><input type="checkbox" value="SAP" /> SAP</label>
-          <label><input type="checkbox" value="CRM" /> CRM</label>
-          <label><input type="checkbox" value="Atendimento" /> Atendimento</label>
-          <label><input type="checkbox" value="R&S" /> R&S</label>
-          <label><input type="checkbox" value="Relatórios" /> Relatórios</label>
-          <label><input type="checkbox" value="Administração" /> Administração</label>
-        </div>
+        <div class="competencias-duas-colunas">
+          <div class="competencia-coluna">
+            <h4>Competências Técnicas</h4>
 
-        <label>Competências comportamentais</label>
-        <div id="pc_competencias_comportamentais" class="checkbox-grid">
-          <label><input type="checkbox" value="Comunicação" /> Comunicação</label>
-          <label><input type="checkbox" value="Proatividade" /> Proatividade</label>
-          <label><input type="checkbox" value="Organização" /> Organização</label>
-          <label><input type="checkbox" value="Trabalho em equipe" /> Trabalho em equipe</label>
-          <label><input type="checkbox" value="Adaptabilidade" /> Adaptabilidade</label>
-          <label><input type="checkbox" value="Responsabilidade" /> Responsabilidade</label>
-          <label><input type="checkbox" value="Pontualidade" /> Pontualidade</label>
+            <div id="pc_competencias_tecnicas" class="checkbox-grid compact-checkbox-grid">
+              <label><input type="checkbox" value="Excel" /> Excel</label>
+              <label><input type="checkbox" value="Power BI" /> Power BI</label>
+              <label><input type="checkbox" value="SAP" /> SAP</label>
+              <label><input type="checkbox" value="CRM" /> CRM</label>
+              <label><input type="checkbox" value="Atendimento" /> Atendimento</label>
+              <label><input type="checkbox" value="R&S" /> R&S</label>
+              <label><input type="checkbox" value="Relatórios" /> Relatórios</label>
+              <label><input type="checkbox" value="Administração" /> Administração</label>
+            </div>
+          </div>
+
+          <div class="competencia-coluna">
+            <h4>Competências Comportamentais</h4>
+
+            <div id="pc_competencias_comportamentais" class="checkbox-grid compact-checkbox-grid">
+              <label><input type="checkbox" value="Comunicação" /> Comunicação</label>
+              <label><input type="checkbox" value="Proatividade" /> Proatividade</label>
+              <label><input type="checkbox" value="Organização" /> Organização</label>
+              <label><input type="checkbox" value="Trabalho em equipe" /> Trabalho em equipe</label>
+              <label><input type="checkbox" value="Adaptabilidade" /> Adaptabilidade</label>
+              <label><input type="checkbox" value="Responsabilidade" /> Responsabilidade</label>
+              <label><input type="checkbox" value="Pontualidade" /> Pontualidade</label>
+            </div>
+          </div>
         </div>
       </fieldset>
 
-      <!-- OBJETIVO -->
       <fieldset>
         <legend>Objetivo profissional</legend>
-
         <textarea id="pc_objetivo" placeholder="Conte seus objetivos profissionais"></textarea>
       </fieldset>
 
-      <!-- DEFICIÊNCIA -->
       <fieldset>
         <legend>Inclusão e acessibilidade</legend>
 
-        <label>Tipo de deficiência</label>
-        <select id="pc_deficiencia"></select>
+        <label for="pc_deficiencia">Tipo de deficiência</label>
+        <select id="pc_deficiencia">
+          <option value="">Selecione</option>
+          <option>Física</option>
+          <option>Auditiva</option>
+          <option>Visual</option>
+          <option>Intelectual</option>
+          <option>TEA</option>
+          <option>Múltipla</option>
+          <option>Outra</option>
+          <option>Não informado</option>
+        </select>
 
-        <label>Necessidade de acessibilidade</label>
+        <label for="pc_deficiencia_acessibilidade">Necessidade de acessibilidade</label>
         <textarea id="pc_deficiencia_acessibilidade"></textarea>
 
-        <label>Recursos necessários</label>
+        <label for="pc_recursos_adaptacoes">Recursos necessários</label>
         <textarea id="pc_recursos_adaptacoes"></textarea>
       </fieldset>
 
-      <!-- DOCUMENTOS -->
       <fieldset>
         <legend>Documentos</legend>
 
-        <label>Currículo</label>
+        <label for="pc_curriculo">Currículo</label>
         <input id="pc_curriculo" type="file" />
 
-        <label>Laudo</label>
+        <label for="pc_laudo">Laudo</label>
         <input id="pc_laudo" type="file" />
       </fieldset>
 
-      <!-- LGPD -->
       <fieldset>
-        <label>
+        <legend>Privacidade e consentimento</legend>
+
+        <label class="checkbox-lg">
           <input type="checkbox" id="pc_lgpd" />
-          Concordo com a política de privacidade
+          Concordo com a política de privacidade e autorizo o uso dos meus dados para participação em processos seletivos e banco de talentos.
         </label>
       </fieldset>
 
-      <!-- AÇÕES -->
+      <fieldset>
+        <legend>Assinatura do candidato</legend>
+
+        <p class="muted">
+          Confirme seu nome completo abaixo como assinatura digital deste cadastro.
+        </p>
+
+        <label for="pc_assinatura">Assinatura / nome completo</label>
+        <input id="pc_assinatura" type="text" placeholder="Digite seu nome completo" />
+
+        <label for="pc_data_assinatura">Data da assinatura</label>
+        <input id="pc_data_assinatura" type="date" />
+      </fieldset>
+
       <div class="actions">
         <button type="button" onclick="App.Controllers.Portal.enviar()">Enviar</button>
         <button type="button" onclick="App.Controllers.Portal.limparFormulario()">Limpar</button>
