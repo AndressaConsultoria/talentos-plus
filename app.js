@@ -468,23 +468,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     dataVaga.addEventListener("change", App.Utils.atualizarSLAVisual);
   }
 
-  const cVaga = document.getElementById("c_vaga");
-  if (cVaga) {
-    cVaga.addEventListener("change", () => {
-      const vagaId = App.Utils.value("c_vaga");
+const cVaga = document.getElementById("c_vaga");
+if (cVaga) {
+  cVaga.addEventListener("change", () => {
+    const vagaId = App.Utils.value("c_vaga");
 
-      if (vagaId === BANCO_TALENTOS_ID) {
-        App.Utils.setValue("c_cliente", "Banco de Talentos");
-        return;
-      }
+    if (vagaId === BANCO_TALENTOS_ID) {
+      App.Utils.setValue("c_cliente", "Banco de Talentos");
+      return;
+    }
 
-      const vaga = App.State.vagas.find(v => v.id === vagaId);
+    const vaga = App.State.vagas.find(v => String(v.id) === String(vagaId));
 
-      if (vaga && !App.Utils.value("c_cliente")) {
-        App.Utils.setValue("c_cliente", App.Utils.getVagaCliente(vaga));
-      }
-    });
-  }
+    if (vaga) {
+      App.Utils.setValue("c_cliente", App.Utils.getVagaCliente(vaga));
+    } else {
+      App.Utils.setValue("c_cliente", "");
+    }
+  });
+}
 
   if (App.State.useSupabase) {
     const { data } = await supabaseClient.auth.getSession();
