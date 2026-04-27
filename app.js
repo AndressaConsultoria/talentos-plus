@@ -455,11 +455,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   const loginBtn = document.getElementById("authLoginBtn");
   if (loginBtn) loginBtn.addEventListener("click", login);
 
+  const signupBtn = document.getElementById("authSignupBtn");
+  if (signupBtn) signupBtn.addEventListener("click", signup);
+
   const portalBtn = document.getElementById("pc_enviar");
-  if (portalBtn) portalBtn.addEventListener("click", () => App.Controllers.Portal.enviar());
+  if (portalBtn) {
+    portalBtn.addEventListener("click", () => App.Controllers.Portal.enviar());
+  }
 
   const dataVaga = document.getElementById("v_data");
-  if (dataVaga) dataVaga.addEventListener("change", App.Utils.atualizarSLAVisual);
+  if (dataVaga) {
+    dataVaga.addEventListener("change", App.Utils.atualizarSLAVisual);
+  }
 
   const cVaga = document.getElementById("c_vaga");
   if (cVaga) {
@@ -472,6 +479,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       const vaga = App.State.vagas.find(v => v.id === vagaId);
+
       if (vaga && !App.Utils.value("c_cliente")) {
         App.Utils.setValue("c_cliente", App.Utils.getVagaCliente(vaga));
       }
@@ -481,142 +489,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (App.State.useSupabase) {
     const { data } = await supabaseClient.auth.getSession();
 
-    if (data.session) await bootUser();
-    else showAuth();
+    if (data.session) {
+      await bootUser();
+    } else {
+      showAuth();
+    }
   } else {
-    App.State.profile = { tipo: "admin" };
     showAuth();
-    await App.Data.refreshAll();
   }
 });
-
-async function login() {
-  const email = App.Utils.value("authEmail").trim();
-  const password = App.Utils.value("authPassword").trim();
-  const errorBox = document.getElementById("authError");
-
-  if (errorBox) errorBox.innerText = "";
-
-  if (!email || !password) {
-    if (errorBox) errorBox.innerText = "Preencha email e senha.";
-    return;
-  }
-
-  if (!App.State.useSupabase) {
-    App.State.user = { email };
-    App.State.profile = {
-      email,
-      tipo: email.toLowerCase().includes("admin") ? "admin" : "candidato"
-    };
-
-    showApp();
-    App.Access.apply();
-    await App.Data.refreshAll();
-    showPage(App.Access.firstPageForRole(), App.Access.firstButtonForRole());
-    return;
-  }
-
-  const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-
-  if (error) {
-    if (errorBox) errorBox.innerText = "Erro no login: " + error.message;
-    return;
-  }
-
-  await bootUser();
-}
-
-async function logout() {
-  if (App.State.useSupabase) await supabaseClient.auth.signOut();
-  location.reload();
-}
-
-async function bootUser() {
-  const { data: userData, error: userError } = await supabaseClient.auth.getUser();
-
-  if (userError || !userData.user) {
-    showAuth();
-    return;
-  }
-
-  App.State.user = userData.user;
-
-  let { data: profile, error: profileError } = await supabaseClient
-    .from("profiles")
-    .select("*")
-    .eq("id", App.State.user.id)
-    .maybeSingle();
-
-  if (profileError) {
-    console.error("Erro ao carregar perfil:", profileError);
-    showAuth();
-    return;
-  }
-
-  if (!profile) {
-    profile = {
-      id: App.State.user.id,
-      email: App.State.user.email,
-      tipo: "candidato"
-    };
-
-    await supabaseClient.from("profiles").upsert(profile);
-  }
-
-  App.State.profile = profile;
-
-  showApp();
-  App.Access.apply();
-  await App.Data.refreshAll();
-
-  showPage(App.Access.firstPageForRole(), App.Access.firstButtonForRole());
-
-  if (App.Access.currentRole() === "candidato") {
-    await App.Controllers.Portal.carregarMeuCadastro();
-  }
-}
-
-function showAuth() {
-  document.getElementById("authScreen")?.classList.remove("hidden");
-  document.getElementById("appShell")?.classList.add("hidden");
-}
-
-function showApp() {
-  document.getElementById("authScreen")?.classList.add("hidden");
-  document.getElementById("appShell")?.classList.remove("hidden");
-
-  const badge = document.getElementById("authUserBadge");
-  if (badge && App.State.user) {
-    badge.innerText = `${App.State.profile?.tipo || ""} | ${App.State.user.email}`;
-  }
-}
-
-function applyAccess(tipo) {
-  if (!App.State.profile) App.State.profile = { tipo: tipo || "candidato" };
-  App.State.profile.tipo = tipo || App.State.profile.tipo || "candidato";
-  App.Access.apply();
-}
-
-function showPage(id, btn) {
-  if (!App.Access.guard(id)) return;
-
-  document.querySelectorAll(".page").forEach(page => page.classList.remove("active"));
-
-  const selectedPage = document.getElementById(id);
-  if (selectedPage) selectedPage.classList.add("active");
-
-  document.querySelectorAll(".menu-btn").forEach(button => button.classList.remove("active"));
-  if (btn) btn.classList.add("active");
-
-  if (id === "gestaoVagas") App.Controllers.Vagas.renderGestao();
-  if (id === "gestaoCandidatos") App.Controllers.Candidatos.renderGestao();
-  if (id === "portalCandidato") App.Controllers.Portal.carregarMeuCadastro();
-  if (id === "parecer") App.Controllers.Parecer.populateSelects();
-  if (id === "feedback") App.Controllers.Feedback.populateSelects();
-  if (id === "retornoCliente") App.Controllers.Retorno.populateSelects();
-  if (id === "diversidade") App.Controllers.Diversidade.render();
-  if (id === "dashboard") App.Controllers.Dashboard.render();
-}
 
 // ============================================================
 // MAPEIA
@@ -2391,6 +2272,271 @@ window.App = App;
 window.showPage = showPage;
 window.login = login;
 window.logout = logout;
+window.applyAccess = applyAccess;
+window.signup = signup;
+
+// ==============================
+// TESTE BOTÃO CRIAR CONTA
+// ==============================
+
+async function signup() {
+  const email = App.Utils.value("authEmail").trim();
+  const password = App.Utils.value("authPassword").trim();
+  const errorBox = document.getElementById("authError");
+
+  if (errorBox) errorBox.innerText = "";
+
+  if (!email || !password) {
+    if (errorBox) errorBox.innerText = "Preencha email e senha para criar a conta.";
+    return;
+  }
+
+  const { data, error } = await supabaseClient.auth.signUp({
+    email,
+    password
+  });
+
+  if (error) {
+    if (errorBox) errorBox.innerText = "Erro ao criar conta: " + error.message;
+    return;
+  }
+
+  const userId = data?.user?.id;
+
+  if (userId) {
+    await supabaseClient.from("profiles").upsert({
+      id: userId,
+      email,
+      tipo: "candidato"
+    });
+  }
+
+  if (errorBox) {
+    errorBox.innerText = "Conta de candidato criada. Agora clique em Entrar.";
+  }
+}
+
+// ============================================================
+// FUNÇÕES GLOBAIS OBRIGATÓRIAS
+// ============================================================
+
+async function login() {
+  const email = App.Utils.value("authEmail").trim();
+  const password = App.Utils.value("authPassword").trim();
+  const errorBox = document.getElementById("authError");
+
+  if (errorBox) errorBox.innerText = "";
+
+  if (!email || !password) {
+    if (errorBox) errorBox.innerText = "Preencha email e senha.";
+    return;
+  }
+
+  const { error } = await supabaseClient.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) {
+    if (errorBox) errorBox.innerText = "Erro no login: " + error.message;
+    return;
+  }
+
+  await bootUser();
+}
+
+function showPage(id, btn) {
+  document.querySelectorAll(".page").forEach(page => {
+    page.classList.remove("active");
+  });
+
+  const page = document.getElementById(id);
+  if (page) page.classList.add("active");
+
+  document.querySelectorAll(".menu-btn").forEach(button => {
+    button.classList.remove("active");
+  });
+
+  if (btn) btn.classList.add("active");
+
+  if (id === "gestaoVagas") App.Controllers.Vagas.renderGestao();
+  if (id === "gestaoCandidatos") App.Controllers.Candidatos.renderGestao();
+  if (id === "portalCandidato") App.Controllers.Portal.carregarMeuCadastro();
+  if (id === "diversidade") App.Controllers.Diversidade.render();
+  if (id === "dashboard") App.Controllers.Dashboard.render();
+}
+
+window.login = login;
+window.showPage = showPage;
+
+// ============================================================
+// BOOT DO USUÁRIO (APÓS LOGIN)
+// ============================================================
+
+async function bootUser() {
+  // pega usuário logado
+  const { data } = await supabaseClient.auth.getUser();
+  const user = data?.user;
+
+  if (!user) {
+    showAuth();
+    return;
+  }
+
+  App.State.user = user;
+
+  // tenta buscar perfil (admin ou candidato)
+  const { data: profile } = await supabaseClient
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  // define tipo padrão se não existir
+  const tipo = profile?.tipo || "candidato";
+
+  App.State.userProfile = {
+    ...profile,
+    tipo
+  };
+
+  // mostra sistema
+  document.getElementById("authScreen").classList.add("hidden");
+  document.getElementById("appShell").classList.remove("hidden");
+
+  // badge do usuário
+  const badge = document.getElementById("authUserBadge");
+  if (badge) {
+    badge.innerText = `${user.email} (${tipo})`;
+  }
+
+  // controle de acesso
+  applyAccess(tipo);
+
+  // carrega dados iniciais
+  if (App.Controllers.Vagas) await App.Controllers.Vagas.carregar();
+  if (App.Controllers.Candidatos) await App.Controllers.Candidatos.carregar();
+
+  // abre primeira tela
+  showPage("mapeia");
+}
+
+window.bootUser = bootUser;
+
+// ==============================
+// CONTROLE DE ACESSO
+// ==============================
+
+function applyAccess(tipo) {
+  const isAdmin = tipo === "admin";
+
+  document.querySelectorAll(".admin-only").forEach(el => {
+    el.style.display = isAdmin ? "" : "none";
+  });
+
+  document.querySelectorAll(".menu-btn").forEach(btn => {
+    const page = btn.getAttribute("data-page");
+
+    if (!isAdmin && page !== "portalCandidato") {
+      btn.style.display = "none";
+    } else {
+      btn.style.display = "";
+    }
+  });
+}
+
+// ==============================
+// LOGOUT
+// ==============================
+
+async function logout() {
+  if (supabaseClient) {
+    await supabaseClient.auth.signOut();
+  }
+
+  document.getElementById("appShell")?.classList.add("hidden");
+  document.getElementById("authScreen")?.classList.remove("hidden");
+
+  location.reload();
+}
+
+// ==============================
+// NAVEGAÇÃO PROTEGIDA
+// ==============================
+
+function showPage(id, btn) {
+  const tipo = App.State.profile?.tipo || "candidato";
+
+  if (tipo !== "admin" && id !== "portalCandidato") {
+    id = "portalCandidato";
+    btn = document.querySelector('[data-page="portalCandidato"]');
+  }
+
+  document.querySelectorAll(".page").forEach(page => {
+    page.classList.remove("active");
+  });
+
+  const page = document.getElementById(id);
+  if (page) page.classList.add("active");
+
+  document.querySelectorAll(".menu-btn").forEach(button => {
+    button.classList.remove("active");
+  });
+
+  if (btn) btn.classList.add("active");
+}
+
+// ==============================
+// BOOT DO USUÁRIO
+// ==============================
+
+async function bootUser() {
+  const { data } = await supabaseClient.auth.getUser();
+
+  if (!data.user) return;
+
+  let { data: profile } = await supabaseClient
+    .from("profiles")
+    .select("*")
+    .eq("id", data.user.id)
+    .maybeSingle();
+
+  if (!profile) {
+    profile = {
+      id: data.user.id,
+      email: data.user.email,
+      tipo: "candidato"
+    };
+
+    await supabaseClient.from("profiles").upsert(profile);
+  }
+
+  App.State.profile = profile;
+
+  document.getElementById("authScreen").classList.add("hidden");
+  document.getElementById("appShell").classList.remove("hidden");
+
+  const badge = document.getElementById("authUserBadge");
+  if (badge) {
+    badge.innerText = `${profile.tipo} | ${data.user.email}`;
+  }
+
+  applyAccess(profile.tipo);
+
+  if (profile.tipo === "admin") {
+    showPage("mapeia");
+  } else {
+    showPage("portalCandidato");
+  }
+}
+
+// ==============================
+// GLOBAL
+// ==============================
+
+window.logout = logout;
+window.showPage = showPage;
+window.bootUser = bootUser;
 window.applyAccess = applyAccess;
 
 // ============================================================
