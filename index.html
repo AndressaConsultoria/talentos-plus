@@ -9,33 +9,33 @@
 
 <body>
   <!-- LOGIN ADMIN / CANDIDATO -->
-  <section id="authScreen" class="auth-screen">
-    <div class="auth-card">
-      <div class="auth-brand">
-        <h1>Talentos+</h1>
-        <p>Sistema estratégico de recrutamento inclusivo</p>
-      </div>
-
-      <div class="auth-info">
-        <strong>Acesso seguro</strong>
-        <span>Entre com seu usuário cadastrado no Supabase.</span>
-      </div>
-
-      <label for="authEmail">Email</label>
-      <input id="authEmail" type="email" placeholder="seuemail@exemplo.com" autocomplete="email" />
-
-      <label for="authPassword">Senha</label>
-      <input id="authPassword" type="password" placeholder="Digite sua senha" autocomplete="current-password" />
-
-      <button id="authLoginBtn" class="primary-btn auth-submit" type="button">Entrar</button>
-
-      <button id="authSignupBtn" class="primary-btn auth-submit" type="button">
-        Criar conta de candidato
-      </button>
-
-      <div id="authError" class="auth-error" aria-live="polite"></div>
+<section id="authScreen" class="auth-screen">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <h1>Talentos+</h1>
+      <p>Sistema estratégico de recrutamento inclusivo</p>
     </div>
-  </section>
+
+    <div class="auth-info">
+      <strong>Acesso seguro</strong>
+      <span>Entre como ADM ou candidato cadastrado no Supabase.</span>
+    </div>
+
+    <label for="authEmail">Email</label>
+    <input id="authEmail" type="email" placeholder="seuemail@exemplo.com" autocomplete="email" />
+
+    <label for="authPassword">Senha</label>
+    <input id="authPassword" type="password" placeholder="Digite sua senha" autocomplete="current-password" />
+
+    <button id="authLoginBtn" class="primary-btn auth-submit" type="button">Entrar</button>
+
+    <button id="authSignupBtn" class="secondary-btn auth-submit" type="button">
+      Criar conta de candidato
+    </button>
+
+    <div id="authError" class="auth-error" aria-live="polite"></div>
+  </div>
+</section>
 
   <!-- SISTEMA PRINCIPAL -->
   <div id="appShell" class="app-shell hidden">
@@ -46,25 +46,18 @@
       </div>
 
       <nav class="menu" aria-label="Menu principal">
-        <!-- MENU ADMIN -->
-        <button class="menu-btn admin-only active" data-page="mapeia" onclick="showPage('mapeia', this)">MapeIA</button>
+        <button class="menu-btn active admin-only" data-page="mapeia" onclick="showPage('mapeia', this)">MapeIA</button>
         <button class="menu-btn admin-only" data-page="cadastroVagas" onclick="showPage('cadastroVagas', this)">Cadastro de Vagas</button>
         <button class="menu-btn admin-only" data-page="gestaoVagas" onclick="showPage('gestaoVagas', this)">Gestão de Vagas</button>
         <button class="menu-btn admin-only" data-page="cadastroCandidatos" onclick="showPage('cadastroCandidatos', this)">Cadastro de Candidatos</button>
         <button class="menu-btn admin-only" data-page="gestaoCandidatos" onclick="showPage('gestaoCandidatos', this)">Gestão de Candidatos</button>
         <button class="menu-btn admin-only" data-page="uploadCandidatos" onclick="showPage('uploadCandidatos', this)">Upload de Candidatos</button>
+        <button class="menu-btn" data-page="portalCandidato" onclick="showPage('portalCandidato', this)">Portal do Candidato</button>
         <button class="menu-btn admin-only" data-page="parecer" onclick="showPage('parecer', this)">Parecer</button>
         <button class="menu-btn admin-only" data-page="feedback" onclick="showPage('feedback', this)">Feedback</button>
         <button class="menu-btn admin-only" data-page="retornoCliente" onclick="showPage('retornoCliente', this)">Retorno ao Cliente</button>
         <button class="menu-btn admin-only" data-page="diversidade" onclick="showPage('diversidade', this)">Diversidade</button>
         <button class="menu-btn admin-only" data-page="dashboard" onclick="showPage('dashboard', this)">Dashboard</button>
-
-        <!-- MENU CANDIDATO -->
-        <button class="menu-btn candidate-only" data-page="vagasAbertas" onclick="showPage('vagasAbertas', this)">Vagas em Aberto</button>
-        <button class="menu-btn" data-page="portalCandidato"
-onclick="showPage('portalCandidato', this)">
-Portal do Candidato
-</button>
       </nav>
 
       <div id="authUserBadge" class="auth-user-badge"></div>
@@ -73,7 +66,7 @@ Portal do Candidato
 
     <main class="content">
       <!-- MAPEIA -->
-      <section id="mapeia" class="page admin-page active">
+      <section id="mapeia" class="page active">
         <div class="page-header">
           <h2>MapeIA</h2>
           <p>Inteligência de mercado automatizada com histórico de mapeamentos.</p>
@@ -171,7 +164,7 @@ Portal do Candidato
       </section>
 
       <!-- CADASTRO DE VAGAS -->
-      <section id="cadastroVagas" class="page admin-page">
+      <section id="cadastroVagas" class="page">
         <div class="page-header">
           <h2>Cadastro de Vagas</h2>
           <p>Cadastro estruturado para novas vagas e oportunidades.</p>
@@ -299,7 +292,7 @@ Portal do Candidato
       </section>
 
       <!-- GESTÃO DE VAGAS -->
-      <section id="gestaoVagas" class="page admin-page">
+      <section id="gestaoVagas" class="page">
         <div class="page-header">
           <h2>Gestão de Vagas</h2>
           <p>Acompanhamento operacional e estratégico das vagas.</p>
@@ -352,7 +345,7 @@ Portal do Candidato
       </section>
 
       <!-- CADASTRO DE CANDIDATOS -->
-      <section id="cadastroCandidatos" class="page admin-page">
+      <section id="cadastroCandidatos" class="page">
         <div class="page-header">
           <h2>Cadastro de Candidatos</h2>
           <p>Cadastro interno organizado no mesmo padrão das demais telas do sistema.</p>
@@ -372,6 +365,11 @@ Portal do Candidato
               <div>
                 <label for="c_nome">Nome completo</label>
                 <input id="c_nome" type="text" placeholder="Digite o nome completo" />
+              </div>
+
+              <div>
+                <label for="c_cpf">CPF</label>
+                <input id="c_cpf" type="text" placeholder="000.000.000-00" autocomplete="off" />
               </div>
 
               <div>
@@ -664,7 +662,7 @@ Portal do Candidato
       </section>
 
       <!-- GESTÃO DE CANDIDATOS -->
-      <section id="gestaoCandidatos" class="page admin-page">
+      <section id="gestaoCandidatos" class="page">
         <div class="page-header">
           <h2>Gestão de Candidatos</h2>
           <p>Gestão completa com filtros e leitura estratégica.</p>
@@ -718,7 +716,7 @@ Portal do Candidato
       </section>
 
       <!-- UPLOAD DE CANDIDATOS -->
-      <section id="uploadCandidatos" class="page admin-page">
+      <section id="uploadCandidatos" class="page">
         <div class="page-header">
           <h2>Upload de Candidatos</h2>
           <p>Importação em lote via CSV.</p>
@@ -740,191 +738,162 @@ Portal do Candidato
         </div>
       </section>
 
-      <!-- VAGAS EM ABERTO - CANDIDATO -->
-      <section id="vagasAbertas" class="page candidate-page">
-        <div class="page-header">
-          <h2>Vagas em Aberto</h2>
-          <p>Consulte as oportunidades disponíveis e selecione uma vaga para se candidatar.</p>
+     <!-- PORTAL DO CANDIDATO -->
+<section id="portalCandidato" class="page portal-page portal-accessible">
+  <div class="page-header portal-header-accessible">
+    <h2>Portal do candidato</h2>
+    <p>Cadastro acessível com foco em inclusão e clareza das informações.</p>
+  </div>
+
+  <div class="box portal-box-accessible">
+    <form aria-label="Formulário do Portal do Candidato">
+
+      <!-- VAGAS -->
+      <fieldset>
+        <legend>Vaga de interesse</legend>
+
+        <label for="pc_vaga">Selecione uma vaga</label>
+        <select id="pc_vaga"></select>
+
+        <label for="pc_empresa">Empresa</label>
+        <input id="pc_empresa" type="text" readonly />
+      </fieldset>
+
+      <!-- DADOS PRINCIPAIS -->
+      <fieldset>
+        <legend>Dados principais</legend>
+
+        <label>Nome completo</label>
+        <input id="pc_nome" type="text" />
+
+        <label>CPF</label>
+        <input id="pc_cpf" type="text" />
+
+        <label>Email</label>
+        <input id="pc_email" type="email" />
+
+        <label>Telefone</label>
+        <input id="pc_telefone" type="text" />
+
+        <label>Data de nascimento</label>
+        <input id="pc_data_nascimento" type="date" />
+      </fieldset>
+
+      <!-- LOCALIZAÇÃO -->
+      <fieldset>
+        <legend>Localização</legend>
+
+        <label>Estado</label>
+        <select id="pc_estado"></select>
+
+        <label>Cidade</label>
+        <input id="pc_cidade" type="text" />
+      </fieldset>
+
+      <!-- EXPERIÊNCIAS -->
+      <fieldset>
+        <legend>Últimas experiências profissionais</legend>
+
+        <h4>Última experiência</h4>
+        <input id="pc_exp1_empresa" placeholder="Empresa" />
+        <input id="pc_exp1_periodo" placeholder="Período (ex: 2022 - 2024)" />
+        <textarea id="pc_exp1_atividades" placeholder="Descreva atividades"></textarea>
+
+        <h4>Penúltima experiência</h4>
+        <input id="pc_exp2_empresa" />
+        <input id="pc_exp2_periodo" />
+        <textarea id="pc_exp2_atividades"></textarea>
+
+        <h4>Terceira experiência</h4>
+        <input id="pc_exp3_empresa" />
+        <input id="pc_exp3_periodo" />
+        <textarea id="pc_exp3_atividades"></textarea>
+      </fieldset>
+
+      <!-- COMPETÊNCIAS -->
+      <fieldset>
+        <legend>Competências</legend>
+
+        <p class="muted">Selecione até 6 em cada grupo</p>
+
+        <label>Competências técnicas</label>
+        <div id="pc_competencias_tecnicas" class="checkbox-grid">
+          <label><input type="checkbox" value="Excel" /> Excel</label>
+          <label><input type="checkbox" value="Power BI" /> Power BI</label>
+          <label><input type="checkbox" value="SAP" /> SAP</label>
+          <label><input type="checkbox" value="CRM" /> CRM</label>
+          <label><input type="checkbox" value="Atendimento" /> Atendimento</label>
+          <label><input type="checkbox" value="R&S" /> R&S</label>
+          <label><input type="checkbox" value="Relatórios" /> Relatórios</label>
+          <label><input type="checkbox" value="Administração" /> Administração</label>
         </div>
 
-        <div class="box">
-          <div class="candidate-intro">
-            <strong>Orientação:</strong> escolha uma oportunidade disponível abaixo ou selecione Banco de Talentos para futuras vagas aderentes ao seu perfil.
-          </div>
-
-          <div id="listaVagasAbertas" class="cards-list"></div>
+        <label>Competências comportamentais</label>
+        <div id="pc_competencias_comportamentais" class="checkbox-grid">
+          <label><input type="checkbox" value="Comunicação" /> Comunicação</label>
+          <label><input type="checkbox" value="Proatividade" /> Proatividade</label>
+          <label><input type="checkbox" value="Organização" /> Organização</label>
+          <label><input type="checkbox" value="Trabalho em equipe" /> Trabalho em equipe</label>
+          <label><input type="checkbox" value="Adaptabilidade" /> Adaptabilidade</label>
+          <label><input type="checkbox" value="Responsabilidade" /> Responsabilidade</label>
+          <label><input type="checkbox" value="Pontualidade" /> Pontualidade</label>
         </div>
-      </section>
+      </fieldset>
 
-      <!-- PORTAL DO CANDIDATO -->
-      <section id="portalCandidato" class="page candidate-page portal-page portal-accessible">
-        <div class="page-header portal-header-accessible">
-          <h2>Portal do candidato</h2>
-          <p>Cadastro acessível com foco em inclusão, leitura facilitada e envio de documentos.</p>
-        </div>
+      <!-- OBJETIVO -->
+      <fieldset>
+        <legend>Objetivo profissional</legend>
 
-        <div class="box portal-box-accessible">
-          <div class="portal-top-alert">
-            <h3>Antes de começar</h3>
-            <ul>
-              <li>Preencha os campos principais para que possamos avaliar seu perfil.</li>
-              <li>Você pode se candidatar a uma vaga disponível ou selecionar Banco de Talentos.</li>
-              <li>O currículo é importante para análise da sua trajetória profissional.</li>
-              <li>O laudo pode ser enviado quando fizer sentido para a vaga e para o processo de inclusão.</li>
-            </ul>
-          </div>
+        <textarea id="pc_objetivo" placeholder="Conte seus objetivos profissionais"></textarea>
+      </fieldset>
 
-          <form aria-label="Formulário do Portal do Candidato">
-            <fieldset>
-              <legend>Vagas disponíveis</legend>
-              <p class="muted">Escolha uma vaga disponível abaixo ou selecione Banco de Talentos.</p>
-              <div id="pc_vagas_disponiveis" class="cards-list"></div>
-            </fieldset>
+      <!-- DEFICIÊNCIA -->
+      <fieldset>
+        <legend>Inclusão e acessibilidade</legend>
 
-            <fieldset>
-              <legend>Dados principais</legend>
+        <label>Tipo de deficiência</label>
+        <select id="pc_deficiencia"></select>
 
-              <label for="pc_nome">Nome completo</label>
-              <input id="pc_nome" type="text" placeholder="Digite seu nome completo" autocomplete="name" />
+        <label>Necessidade de acessibilidade</label>
+        <textarea id="pc_deficiencia_acessibilidade"></textarea>
 
-              <label for="pc_telefone">Telefone / WhatsApp</label>
-              <input id="pc_telefone" type="text" placeholder="(00) 00000-0000" autocomplete="tel" />
+        <label>Recursos necessários</label>
+        <textarea id="pc_recursos_adaptacoes"></textarea>
+      </fieldset>
 
-              <label for="pc_email">E-mail</label>
-              <input id="pc_email" type="email" placeholder="email@exemplo.com" autocomplete="email" />
+      <!-- DOCUMENTOS -->
+      <fieldset>
+        <legend>Documentos</legend>
 
-              <label for="pc_data_nascimento">Data de nascimento</label>
-              <input id="pc_data_nascimento" type="date" />
+        <label>Currículo</label>
+        <input id="pc_curriculo" type="file" />
 
-              <label for="pc_vaga">Vaga de interesse</label>
-              <select id="pc_vaga"></select>
+        <label>Laudo</label>
+        <input id="pc_laudo" type="file" />
+      </fieldset>
 
-              <label for="pc_empresa">Empresa</label>
-              <input id="pc_empresa" type="text" placeholder="Preenchido automaticamente quando aplicável" />
-            </fieldset>
+      <!-- LGPD -->
+      <fieldset>
+        <label>
+          <input type="checkbox" id="pc_lgpd" />
+          Concordo com a política de privacidade
+        </label>
+      </fieldset>
 
-            <fieldset>
-              <legend>Localização e dados pessoais</legend>
+      <!-- AÇÕES -->
+      <div class="actions">
+        <button type="button" onclick="App.Controllers.Portal.enviar()">Enviar</button>
+        <button type="button" onclick="App.Controllers.Portal.limparFormulario()">Limpar</button>
+      </div>
 
-              <label for="pc_estado">Estado</label>
-              <select id="pc_estado">
-                <option value="">Selecione</option>
-                <option>AC</option><option>AL</option><option>AP</option><option>AM</option>
-                <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
-                <option>GO</option><option>MA</option><option>MT</option><option>MS</option>
-                <option>MG</option><option>PA</option><option>PB</option><option>PR</option>
-                <option>PE</option><option>PI</option><option>RJ</option><option>RN</option>
-                <option>RS</option><option>RO</option><option>RR</option><option>SC</option>
-                <option>SP</option><option>SE</option><option>TO</option>
-              </select>
+      <div id="pc_resultado"></div>
 
-              <label for="pc_cidade">Cidade</label>
-              <input id="pc_cidade" type="text" placeholder="Digite sua cidade" />
-
-              <label for="pc_escolaridade">Escolaridade</label>
-              <select id="pc_escolaridade">
-                <option value="">Selecione</option>
-                <option>Ensino fundamental incompleto</option>
-                <option>Ensino fundamental completo</option>
-                <option>Ensino médio incompleto</option>
-                <option>Ensino médio completo</option>
-                <option>Técnico</option>
-                <option>Superior cursando</option>
-                <option>Superior completo</option>
-                <option>Pós-graduação</option>
-                <option>Mestrado</option>
-                <option>Doutorado</option>
-              </select>
-
-              <label for="pc_genero">Gênero</label>
-              <select id="pc_genero">
-                <option value="">Selecione</option>
-                <option>Homem cisgênero</option>
-                <option>Mulher cisgênero</option>
-                <option>Pessoa transgênero</option>
-                <option>Não binário</option>
-                <option>Prefere não informar</option>
-              </select>
-
-              <label for="pc_raca">Raça/cor</label>
-              <select id="pc_raca">
-                <option value="">Selecione</option>
-                <option>Preta</option>
-                <option>Parda</option>
-                <option>Branca</option>
-                <option>Amarela</option>
-                <option>Indígena</option>
-                <option>Prefere não informar</option>
-              </select>
-            </fieldset>
-
-            <fieldset>
-              <legend>Experiência e competências</legend>
-
-              <label for="pc_experiencia">Principais experiências</label>
-              <textarea id="pc_experiencia" placeholder="Conte resumidamente suas principais experiências profissionais."></textarea>
-
-              <label for="pc_descricao_experiencia">Descrição da experiência profissional</label>
-              <textarea id="pc_descricao_experiencia" placeholder="Descreva atividades, responsabilidades, empresas, resultados ou vivências relevantes."></textarea>
-
-              <label for="pc_competencias_tecnicas">Competências técnicas</label>
-              <textarea id="pc_competencias_tecnicas" placeholder="Ex.: Excel, atendimento, sistemas, relatórios, indicadores..."></textarea>
-
-              <label for="pc_competencias_comportamentais">Competências comportamentais</label>
-              <textarea id="pc_competencias_comportamentais" placeholder="Ex.: comunicação, organização, postura, relacionamento interpessoal..."></textarea>
-
-              <label for="pc_contexto">Momento profissional</label>
-              <textarea id="pc_contexto" placeholder="Conte um pouco sobre seu momento profissional atual."></textarea>
-
-              <label for="pc_objetivo">Objetivo profissional</label>
-              <textarea id="pc_objetivo" placeholder="Informe sua área de interesse, objetivo profissional ou próximos passos desejados."></textarea>
-            </fieldset>
-
-            <fieldset>
-              <legend>Deficiência e acessibilidade</legend>
-
-              <label for="pc_deficiencia">Tipo de deficiência</label>
-              <select id="pc_deficiencia">
-                <option value="">Selecione</option>
-                <option>Física</option>
-                <option>Auditiva</option>
-                <option>Visual</option>
-                <option>Intelectual</option>
-                <option>TEA</option>
-                <option>Múltipla</option>
-                <option>Outra</option>
-                <option>Não informado</option>
-              </select>
-
-              <label for="pc_deficiencia_acessibilidade">Necessidade de acessibilidade</label>
-              <textarea id="pc_deficiencia_acessibilidade" placeholder="Informe se precisa de algum apoio ou adaptação no processo seletivo."></textarea>
-
-              <label for="pc_recursos_adaptacoes">Recursos ou adaptações necessárias</label>
-              <textarea id="pc_recursos_adaptacoes" placeholder="Ex.: intérprete de Libras, leitor de tela, tempo adicional, local silencioso, apoio visual..."></textarea>
-            </fieldset>
-
-            <fieldset>
-              <legend>Upload de documentos</legend>
-
-              <label for="pc_curriculo">Currículo</label>
-              <input id="pc_curriculo" type="file" accept=".pdf,.doc,.docx" />
-
-              <label for="pc_laudo">Laudo</label>
-              <input id="pc_laudo" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" />
-            </fieldset>
-
-            <div class="actions">
-              <button id="pc_enviar" class="primary-btn" type="button">Enviar cadastro</button>
-              <button class="ghost-btn" type="button" onclick="App.Controllers.Portal.limparFormulario()">Limpar</button>
-            </div>
-
-            <div id="pc_resultado" class="resultado-box" aria-live="polite"></div>
-          </form>
-        </div>
-      </section>
+    </form>
+  </div>
+</section>
 
       <!-- PARECER -->
-      <section id="parecer" class="page admin-page">
+      <section id="parecer" class="page">
         <div class="page-header">
           <h2>Parecer</h2>
           <p>Análise estruturada e consultiva do candidato.</p>
@@ -956,7 +925,7 @@ Portal do Candidato
       </section>
 
       <!-- FEEDBACK -->
-      <section id="feedback" class="page admin-page">
+      <section id="feedback" class="page">
         <div class="page-header">
           <h2>Feedback</h2>
           <p>Comunicação humanizada e inteligente com candidatos.</p>
@@ -1047,7 +1016,7 @@ Portal do Candidato
       </section>
 
       <!-- RETORNO AO CLIENTE -->
-      <section id="retornoCliente" class="page admin-page">
+      <section id="retornoCliente" class="page">
         <div class="page-header">
           <h2>Retorno ao Cliente</h2>
           <p>Visão estratégica do processo seletivo.</p>
@@ -1078,10 +1047,10 @@ Portal do Candidato
       </section>
 
       <!-- DIVERSIDADE -->
-      <section id="diversidade" class="page admin-page">
+      <section id="diversidade" class="page">
         <div class="page-header">
           <h2>Diversidade</h2>
-          <p>Visual estratégico da base de candidatos.</p>
+          <p>Visual estratégico dos candidatos em processo.</p>
         </div>
 
         <div class="box">
@@ -1122,10 +1091,10 @@ Portal do Candidato
       </section>
 
       <!-- DASHBOARD -->
-      <section id="dashboard" class="page admin-page">
+      <section id="dashboard" class="page">
         <div class="page-header">
           <h2>Dashboard</h2>
-          <p>Visão geral do sistema.</p>
+          <p>Visão geral do sistema com foco em candidatos em processo.</p>
         </div>
 
         <div class="box">
